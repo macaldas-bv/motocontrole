@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MotoControle">
@@ -9,339 +10,275 @@
     <title>MotoControle - Gestão de Ganhos</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-color: #0b0f19;
+            --card-bg: #161e2e;
+            --card-border: #1f2937;
             --primary: #3b82f6;
-            --success: #22c55e;
-            --danger: #ef4444;
+            --success: #10b981;
+            --danger: #f43f5e;
             --warning: #f59e0b;
             --uber: #000000;
             --99: #ffcc00;
             --particular: #2563eb;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --radius: 16px;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --radius: 20px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            background-color: var(--bg-color);
             color: var(--text-main);
             min-height: 100vh;
-            padding-bottom: 80px;
+            padding-bottom: 110px;
             overflow-x: hidden;
+            line-height: 1.5;
         }
 
-        /* Glassmorphism Utility */
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
             border-radius: var(--radius);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow);
         }
 
         .container {
-            padding: 20px;
+            padding: 16px;
             max-width: 500px;
             margin: 0 auto;
         }
 
-        /* Header */
         header {
-            margin-bottom: 24px;
-            text-align: center;
-        }
-
-        header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(to right, #60a5fa, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Summary Card */
-        .summary-card {
-            padding: 20px;
-            margin-bottom: 24px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .summary-item.full { grid-column: span 2; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; margin-bottom: 5px; }
-        .summary-item label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
-        .summary-item .value { font-size: 1.2rem; font-weight: 600; }
-        .summary-item .value.net { font-size: 2rem; color: var(--success); }
-
-        /* Goal Progress Circle */
-        .goal-container {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-        }
-
-        .goal-svg { transform: rotate(-90deg); }
-        .goal-bg { fill: none; stroke: var(--glass-border); stroke-width: 4; }
-        .goal-bar { fill: none; stroke: var(--success); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 0.5s; }
-
-        /* Sections */
-        .section-title {
-            font-size: 1rem;
-            margin-bottom: 12px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px 0;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+
+        .summary-card {
+            padding: 24px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .summary-item.full { grid-column: span 2; border-bottom: 1px solid var(--card-border); padding-bottom: 16px; }
+        .summary-item label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .summary-item .value { font-size: 1.25rem; font-weight: 700; }
+        .summary-item .value.net { font-size: 2.8rem; color: var(--success); letter-spacing: -0.05em; line-height: 1; margin: 5px 0; }
+
+        .goal-container { width: 52px; height: 52px; }
+        .goal-svg { transform: rotate(-90deg); }
+        .goal-bg { fill: none; stroke: var(--card-border); stroke-width: 5; }
+        .goal-bar { fill: none; stroke: var(--success); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.5s; }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 28px 0 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .grid-buttons {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
         }
 
         .btn-platform {
-            padding: 12px;
+            padding: 18px 10px;
             border: none;
-            border-radius: 12px;
-            font-weight: 600;
+            border-radius: 18px;
+            font-weight: 800;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
+            transition: all 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
 
-        .btn-platform:active { transform: scale(0.95); }
+        .btn-platform:active { transform: scale(0.92); filter: brightness(1.2); }
         .btn-uber { background: #000; color: white; border: 1px solid #333; }
         .btn-99 { background: var(--99); color: #000; }
         .btn-particular { background: var(--particular); color: white; }
-        .btn-expense { background: var(--danger); color: white; grid-column: span 3; margin-top: 10px; padding: 15px; }
+        .btn-expense { background: var(--danger); color: white; grid-column: span 3; margin-top: 10px; padding: 20px; font-size: 1rem; }
 
-        /* Forms */
         .form-inline {
             display: none;
-            padding: 15px;
-            margin-bottom: 20px;
-            animation: slideDown 0.3s ease-out;
+            padding: 24px;
+            margin-top: 15px;
+            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
+            from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .input-group { margin-bottom: 12px; }
-        .input-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; }
-        input, select, textarea {
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+        input, select {
             width: 100%;
-            padding: 12px;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
+            padding: 16px;
+            background: #0b0f19;
+            border: 2px solid var(--card-border);
+            border-radius: 14px;
             color: white;
             font-size: 1rem;
+            font-weight: 600;
         }
+        input:focus { outline: none; border-color: var(--primary); }
 
         .btn-save {
             width: 100%;
-            padding: 14px;
+            padding: 18px;
             background: var(--primary);
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             color: white;
-            font-weight: 600;
-            margin-top: 10px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
 
-        /* Odometer Section */
-        .odo-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
+        .btn-outline { 
+            background: #1f2937; 
+            border: none; 
+            color: white; 
+            padding: 8px 16px; 
+            border-radius: 12px; 
+            font-size: 0.8rem; 
+            font-weight: 700;
         }
+
+        .odo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 15px; }
 
         .eff-card {
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 24px 10px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-around;
             text-align: center;
         }
 
-        .eff-item span { display: block; font-size: 0.75rem; color: var(--text-muted); }
-        .eff-item strong { font-size: 1rem; color: var(--text-main); }
-
-        /* List Items */
-        .scroll-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
-        }
+        .eff-item span { display: block; font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .eff-item strong { font-size: 1.2rem; color: var(--text-main); font-weight: 800; }
 
         .entry-card {
-            padding: 12px 15px;
+            padding: 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-left: 4px solid transparent;
+            border-left: 5px solid transparent;
+            margin-bottom: 4px;
         }
 
-        .entry-info h4 { font-size: 0.9rem; }
-        .entry-info p { font-size: 0.75rem; color: var(--text-muted); }
-        .entry-val { font-weight: 600; }
+        .entry-info h4 { font-size: 1rem; font-weight: 800; }
+        .entry-info p { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .entry-val { font-weight: 800; font-size: 1.1rem; }
 
-        .type-uber { border-left-color: #000; background: rgba(0,0,0,0.3); }
-        .type-99 { border-left-color: var(--99); background: rgba(255, 204, 0, 0.1); }
-        .type-particular { border-left-color: var(--particular); background: rgba(37, 99, 235, 0.1); }
-        .type-gasto { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+        .type-uber { border-left-color: #fff; background: #000; }
+        .type-99 { border-left-color: var(--99); background: rgba(255, 204, 0, 0.05); }
+        .type-particular { border-left-color: var(--particular); background: rgba(37, 99, 235, 0.05); }
+        .type-gasto { border-left-color: var(--danger); background: rgba(244, 63, 94, 0.05); }
 
-        /* Navigation */
         nav {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 70px;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(25px);
-            border-top: 1px solid var(--glass-border);
+            bottom: 24px;
+            left: 20px;
+            right: 20px;
+            height: 76px;
+            background: #1f2937;
+            border-radius: 28px;
             display: flex;
             justify-content: space-around;
             align-items: center;
-            z-index: 100;
-            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 1000;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            padding: 0 10px;
         }
 
         .nav-item {
             flex: 1;
-            height: 100%;
+            height: 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.75rem;
-            font-weight: 500;
+            font-size: 0.65rem;
+            font-weight: 800;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            gap: 4px;
+            transition: all 0.2s;
+            gap: 6px;
+            border-radius: 20px;
         }
 
-        .nav-item.active { 
-            color: var(--primary);
-            transform: translateY(-2px);
-        }
+        .nav-item.active { color: white; background: var(--primary); }
+        .nav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 
-        .nav-item svg { 
-            width: 26px; 
-            height: 26px; 
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .nav-item.active svg {
-            filter: drop-shadow(0 0 8px var(--primary));
-        }
-
-        /* Dashboard Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-top: 20px;
-        }
-
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
         .dash-card {
-            aspect-ratio: 1 / 1;
+            padding: 32px 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 15px;
+            gap: 16px;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--text-main);
-            border: 2px solid var(--glass-border);
-            border-radius: var(--radius);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .dash-card svg {
-            width: 40px;
-            height: 40px;
-            stroke-width: 2;
-        }
-
-        .dash-card:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary);
+            border: 2px solid var(--card-border);
         }
 
         .icon-box {
-            padding: 15px;
-            border-radius: 50%;
-            background: rgba(59, 130, 246, 0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background: #0b0f19;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* Tabs/Screens */
         .page { display: none; }
-        .page.active { display: block; }
+        .page.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* History & Reports */
-        .history-item { margin-bottom: 12px; padding: 15px; cursor: pointer; }
-        .history-header { display: flex; justify-content: space-between; align-items: center; }
-        .history-details { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
-        .history-details.open { display: block; }
+        .history-item { margin-bottom: 12px; padding: 20px; border-left: 4px solid var(--primary); }
+        .report-tabs { display: flex; background: #1f2937; padding: 5px; border-radius: 16px; gap: 5px; margin-bottom: 24px; }
+        .tab-btn { flex: 1; padding: 14px; border-radius: 12px; border: none; background: none; color: var(--text-muted); font-weight: 800; font-size: 0.8rem; }
+        .tab-btn.active { background: var(--primary); color: white; }
 
-        .report-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: none; color: white; cursor: pointer; }
-        .tab-btn.active { background: var(--primary); border-color: var(--primary); }
+        .btn-end-day { width: 100%; padding: 22px; background: var(--success); color: white; border: none; border-radius: 20px; font-weight: 900; font-size: 1.2rem; margin-top: 40px; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
 
-        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-        .progress-bar { height: 8px; background: var(--glass-border); border-radius: 4px; overflow: hidden; margin-bottom: 15px; }
-        .progress-fill { height: 100%; transition: width 0.5s; }
-
-        /* Buttons & Actions */
-        .btn-outline { background: none; border: 1px solid var(--glass-border); color: white; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; }
-        .btn-danger { background: var(--danger); border: none; }
-        .btn-end-day { width: 100%; padding: 18px; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; border-radius: 15px; font-weight: 700; font-size: 1.1rem; margin: 30px 0; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
-
-        /* Modal / Alerts */
-        #summary-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
-        }
-
-        .modal-content { max-width: 400px; width: 100%; padding: 25px; text-align: center; }
-
-        /* Warning text */
-        .fuel-warning { color: var(--warning); font-size: 0.75rem; margin-top: 5px; display: none; }
+        #summary-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+        .modal-content { max-width: 400px; width: 100%; padding: 40px 24px; text-align: center; border: 3px solid var(--success); }
+        .fuel-warning { color: var(--warning); font-size: 0.75rem; font-weight: 800; margin-top: 8px; display: none; }
     </style>
 </head>
 <body>
@@ -351,24 +288,24 @@
         <div id="page-dashboard" class="page active">
             <header>
                 <h1>MotoControle</h1>
-                <p style="color: var(--text-muted)">Escolha uma opção:</p>
+                <div class="icon-box" style="width:40px; height:40px; background:none"><svg viewBox="0 0 24 24" stroke="var(--primary)" stroke-width="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
             </header>
 
             <div class="dashboard-grid">
-                <div class="dash-card glass" onclick="switchPage('today', document.querySelectorAll('.nav-item')[0])">
-                    <div class="icon-box"><svg viewBox="0 0 24 24" stroke="var(--primary)" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+                <div class="dash-card card" onclick="switchPage('today', document.querySelectorAll('.nav-item')[0])">
+                    <div class="icon-box"><svg viewBox="0 0 24 24" stroke="var(--primary)"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
                     <span>Hoje</span>
                 </div>
-                <div class="dash-card glass" onclick="switchPage('history', document.querySelectorAll('.nav-item')[1])">
-                    <div class="icon-box"><svg viewBox="0 0 24 24" stroke="var(--success)" fill="none"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <div class="dash-card card" onclick="switchPage('history', document.querySelectorAll('.nav-item')[1])">
+                    <div class="icon-box"><svg viewBox="0 0 24 24" stroke="var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
                     <span>Histórico</span>
                 </div>
-                <div class="dash-card glass" onclick="switchPage('report', document.querySelectorAll('.nav-item')[2])">
-                    <div class="icon-box"><svg viewBox="0 0 24 24" stroke="var(--warning)" fill="none"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></div>
+                <div class="dash-card card" onclick="switchPage('report', document.querySelectorAll('.nav-item')[2])">
+                    <div class="icon-box"><svg viewBox="0 0 24 24" stroke="var(--warning)"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></div>
                     <span>Relatórios</span>
                 </div>
-                <div class="dash-card glass" onclick="switchPage('settings', document.querySelectorAll('.nav-item')[3])">
-                    <div class="icon-box"><svg viewBox="0 0 24 24" stroke="var(--text-muted)" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
+                <div class="dash-card card" onclick="switchPage('settings', document.querySelectorAll('.nav-item')[3])">
+                    <div class="icon-box"><svg viewBox="0 0 24 24" stroke="var(--text-muted)"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
                     <span>Ajustes</span>
                 </div>
             </div>
@@ -377,72 +314,56 @@
         <!-- TELA HOJE -->
         <div id="page-today" class="page">
             <header>
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <button class="btn-outline" onclick="switchPage('dashboard', null)" style="padding: 5px 10px;">← Menu</button>
-                    <h1 id="current-date" style="margin: 0; font-size: 1.2rem;">Carregando...</h1>
-                </div>
+                <button class="btn-outline" onclick="switchPage('dashboard', null)">← Menu</button>
                 <div class="goal-container">
-                    <svg class="goal-svg" width="50" height="50">
-                        <circle class="goal-bg" cx="25" cy="25" r="20"></circle>
-                        <circle id="goal-progress" class="goal-bar" cx="25" cy="25" r="20" stroke-dasharray="125.6" stroke-dashoffset="125.6"></circle>
+                    <svg class="goal-svg" width="52" height="52">
+                        <circle class="goal-bg" cx="26" cy="26" r="22"></circle>
+                        <circle id="goal-progress" class="goal-bar" cx="26" cy="26" r="22" stroke-dasharray="138.2" stroke-dashoffset="138.2"></circle>
                     </svg>
                 </div>
             </header>
 
-            <div class="summary-card glass">
-
+            <div class="summary-card card">
                 <div class="summary-item full">
-                    <label>Lucro Líquido</label>
+                    <label>Lucro do Dia</label>
                     <div id="today-net" class="value net">R$ 0,00</div>
                 </div>
                 <div class="summary-item">
-                    <label>Total Ganhos</label>
+                    <label>Ganhos</label>
                     <div id="today-earnings" class="value">R$ 0,00</div>
                 </div>
                 <div class="summary-item">
-                    <label>Total Gastos</label>
+                    <label>Gastos</label>
                     <div id="today-expenses" class="value" style="color: var(--danger)">R$ 0,00</div>
                 </div>
             </div>
 
-            <div class="section-title">
-                Registrar ganho por plataforma
-            </div>
+            <div class="section-title">Ganhos por Plataforma</div>
             <div class="grid-buttons">
                 <button class="btn-platform btn-uber" onclick="showForm('earning', 'Uber')">Uber</button>
                 <button class="btn-platform btn-99" onclick="showForm('earning', '99')">99</button>
                 <button class="btn-platform btn-particular" onclick="showForm('earning', 'Particular')">Particular</button>
+                <button class="btn-platform btn-expense" onclick="showForm('expense')">Adicionar Gasto</button>
             </div>
 
-            <!-- Form Corrida -->
-            <div id="form-earning" class="form-inline glass">
-                <h4 id="earning-title" style="margin-bottom: 10px;">Nova Corrida</h4>
+            <div id="form-earning" class="form-inline card">
+                <h3 id="earning-title" style="margin-bottom: 20px;">Nova Corrida</h3>
                 <div class="input-group">
                     <label>Valor Recebido (R$)</label>
-                    <input type="number" id="earn-value" step="0.01" placeholder="0,00">
+                    <input type="number" id="earn-value" step="0.01" inputmode="decimal">
                 </div>
                 <div class="input-group">
-                    <label>KM Rodados nesta corrida</label>
-                    <input type="number" id="earn-km" step="0.1" placeholder="0.0">
+                    <label>KM desta corrida</label>
+                    <input type="number" id="earn-km" step="0.1" inputmode="decimal">
                 </div>
-                <div class="input-group">
-                    <label>Observação (opcional)</label>
-                    <input type="text" id="earn-obs" placeholder="Ex: Corrida longa">
-                </div>
-                <button class="btn-save" onclick="saveEarning()">Salvar Corrida</button>
-                <button class="btn-outline" style="width: 100%; margin-top: 5px;" onclick="hideForms()">Cancelar</button>
+                <button class="btn-save" onclick="saveEarning()">Confirmar Corrida</button>
+                <p onclick="hideForms()" style="text-align:center; margin-top:15px; font-size:0.8rem; color:var(--text-muted)">Cancelar</p>
             </div>
 
-            <div class="section-title">
-                Gastos do dia
-                <button class="btn-outline" onclick="showForm('expense')">+ Adicionar</button>
-            </div>
-
-            <!-- Form Gasto -->
-            <div id="form-expense" class="form-inline glass">
-                <h4 style="margin-bottom: 10px;">Novo Gasto</h4>
+            <div id="form-expense" class="form-inline card">
+                <h3 style="margin-bottom: 20px;">Novo Gasto</h3>
                 <div class="input-group">
-                    <label>Tipo do Gasto</label>
+                    <label>Tipo</label>
                     <select id="exp-type">
                         <option value="Combustível">Combustível</option>
                         <option value="Manutenção">Manutenção</option>
@@ -452,114 +373,92 @@
                 </div>
                 <div class="input-group">
                     <label>Valor (R$)</label>
-                    <input type="number" id="exp-value" step="0.01" placeholder="0,00">
+                    <input type="number" id="exp-value" step="0.01" inputmode="decimal">
                 </div>
-                <div class="input-group">
-                    <label>Descrição (opcional)</label>
-                    <input type="text" id="exp-obs" placeholder="Ex: Posto Ipiranga">
-                </div>
-                <button class="btn-save" onclick="saveExpense()">Salvar Gasto</button>
-                <button class="btn-outline" style="width: 100%; margin-top: 5px;" onclick="hideForms()">Cancelar</button>
+                <button class="btn-save" onclick="saveExpense()">Confirmar Gasto</button>
+                <p onclick="hideForms()" style="text-align:center; margin-top:15px; font-size:0.8rem; color:var(--text-muted)">Cancelar</p>
             </div>
 
-            <div class="section-title" style="margin-top: 20px;">Odômetro do dia</div>
+            <div class="section-title">Quilometragem</div>
             <div class="odo-grid">
                 <div class="input-group">
                     <label>KM Inicial</label>
-                    <input type="number" id="km-start" oninput="updateKmStats()" placeholder="0">
+                    <input type="number" id="km-start" oninput="updateKmStats()" inputmode="numeric">
                 </div>
                 <div class="input-group">
                     <label>KM Final</label>
-                    <input type="number" id="km-end" oninput="updateKmStats()" placeholder="0">
+                    <input type="number" id="km-end" oninput="updateKmStats()" inputmode="numeric">
                 </div>
             </div>
 
-            <div class="eff-card glass">
+            <div class="eff-card card">
                 <div class="eff-item">
-                    <span>KM Total</span>
+                    <span>KM Rodados</span>
                     <strong id="stat-total-km">0.0</strong>
                 </div>
                 <div class="eff-item">
                     <span>Custo/KM</span>
                     <strong id="stat-cost-km">R$ 0,00</strong>
-                    <div id="fuel-warning" class="fuel-warning">⚠️ Consumo alto</div>
+                    <div id="fuel-warning" class="fuel-warning">⚠️ Gasto Alto</div>
                 </div>
                 <div class="eff-item">
-                    <span>Ganho/KM</span>
+                    <span>Ganhos/KM</span>
                     <strong id="stat-earn-km">R$ 0,00</strong>
                 </div>
             </div>
 
-            <div class="section-title">Atividades de Hoje</div>
-            <div id="today-list" class="scroll-list">
-                <!-- Itens injetados via JS -->
-            </div>
+            <div class="section-title">Atividades</div>
+            <div id="today-list" class="scroll-list"></div>
 
-            <button class="btn-end-day" onclick="endDay()">ENCERRAR DIA</button>
+            <button class="btn-end-day" onclick="endDay()">ENCERRAR O DIA</button>
         </div>
 
-        <!-- TELA HISTÓRICO -->
+        <!-- OUTRAS TELAS -->
         <div id="page-history" class="page">
             <header>
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <button class="btn-outline" onclick="switchPage('dashboard', null)" style="padding: 5px 10px;">← Menu</button>
-                    <h1 style="margin: 0; font-size: 1.2rem;">Histórico</h1>
-                </div>
+                <button class="btn-outline" onclick="switchPage('dashboard', null)">← Menu</button>
+                <h1>Histórico</h1>
             </header>
-            <div id="history-list" class="scroll-list">
-                <!-- Dias encerrados injetados aqui -->
-            </div>
+            <div id="history-list" class="scroll-list"></div>
         </div>
 
-        <!-- TELA RELATÓRIO -->
         <div id="page-report" class="page">
             <header>
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <button class="btn-outline" onclick="switchPage('dashboard', null)" style="padding: 5px 10px;">← Menu</button>
-                    <h1 style="margin: 0; font-size: 1.2rem;">Relatórios</h1>
-                </div>
+                <button class="btn-outline" onclick="switchPage('dashboard', null)">← Menu</button>
+                <h1>Relatórios</h1>
             </header>
             <div class="report-tabs">
                 <button class="tab-btn active" onclick="changeReportTab('week', this)">Semana</button>
                 <button class="tab-btn" onclick="changeReportTab('month', this)">Mês</button>
                 <button class="tab-btn" onclick="changeReportTab('total', this)">Total</button>
             </div>
-
-            <div id="report-content" class="glass" style="padding: 20px;">
-                <!-- Conteúdo do relatório injetado aqui -->
-            </div>
+            <div id="report-content" class="card" style="padding: 24px;"></div>
         </div>
 
-        <!-- TELA CONFIGURAÇÕES -->
         <div id="page-settings" class="page">
             <header>
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <button class="btn-outline" onclick="switchPage('dashboard', null)" style="padding: 5px 10px;">← Menu</button>
-                    <h1 style="margin: 0; font-size: 1.2rem;">Ajustes</h1>
-                </div>
+                <button class="btn-outline" onclick="switchPage('dashboard', null)">← Menu</button>
+                <h1>Ajustes</h1>
             </header>
-            
-            <div class="glass" style="padding: 20px; margin-bottom: 20px;">
+            <div class="card" style="padding: 24px; margin-bottom: 24px;">
                 <div class="input-group">
-                    <label>Meta Diária de Lucro (R$)</label>
-                    <input type="number" id="set-goal" onchange="saveConfig()" placeholder="Ex: 200">
+                    <label>Meta Diária (R$)</label>
+                    <input type="number" id="set-goal" onchange="saveConfig()" inputmode="numeric">
                 </div>
                 <div class="input-group">
                     <label>Consumo Médio (KM/L)</label>
-                    <input type="number" id="set-cons" onchange="saveConfig()" placeholder="Ex: 40">
+                    <input type="number" id="set-cons" onchange="saveConfig()" inputmode="numeric">
                 </div>
                 <div class="input-group">
-                    <label>Preço Combustível (R$/L)</label>
-                    <input type="number" id="set-price" onchange="saveConfig()" step="0.01" placeholder="Ex: 5.89">
+                    <label>Preço Combustível (R$)</label>
+                    <input type="number" id="set-price" onchange="saveConfig()" step="0.01" inputmode="decimal">
                 </div>
             </div>
-
-            <button class="btn-save" style="background: var(--success);" onclick="exportWhatsApp()">Exportar Relatório Mensal (WhatsApp)</button>
-            <button class="btn-save" style="background: var(--danger); margin-top: 20px;" onclick="clearAllData()">Limpar Todos os Dados</button>
+            <button class="btn-save" style="background: var(--success);" onclick="exportWhatsApp()">Gerar Relatório WhatsApp</button>
+            <button class="btn-save" style="background: var(--danger); margin-top: 20px;" onclick="clearAllData()">Limpar Tudo</button>
         </div>
     </div>
 
-    <!-- Navegação Inferior -->
     <nav>
         <div class="nav-item active" onclick="switchPage('today', this)">
             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -575,44 +474,30 @@
         </div>
         <div class="nav-item" onclick="switchPage('settings', this)">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            Configurações
+            Ajustes
         </div>
     </nav>
 
-    <!-- Modal Resumo Final -->
     <div id="summary-modal">
-        <div class="modal-content glass">
-            <h2 style="color: var(--success); margin-bottom: 15px;">Dia Encerrado!</h2>
-            <div id="modal-body" style="text-align: left; margin-bottom: 20px; line-height: 1.6;"></div>
-            <button class="btn-save" onclick="closeModal()">OK</button>
+        <div class="modal-content card">
+            <h2 style="color: var(--success); margin-bottom: 20px;">Resumo do Dia</h2>
+            <div id="modal-body" style="text-align: left; margin-bottom: 30px; line-height: 2;"></div>
+            <button class="btn-save" onclick="closeModal()">OK, ENTENDIDO</button>
         </div>
     </div>
 
     <script>
-        // ESTADO GLOBAL
         let state = {
-            currentDay: {
-                earnings: [],
-                expenses: [],
-                kmStart: null,
-                kmEnd: null
-            },
+            currentDay: { earnings: [], expenses: [], kmStart: null, kmEnd: null },
             history: [],
-            config: {
-                goal: 0,
-                consumption: 0,
-                fuelPrice: 0
-            }
+            config: { goal: 0, consumption: 0, fuelPrice: 0 }
         };
 
         const currentPlatform = { type: '' };
 
-        // INICIALIZAÇÃO
         function init() {
             const saved = localStorage.getItem('motoControleData');
-            if (saved) {
-                state = JSON.parse(saved);
-            }
+            if (saved) state = JSON.parse(saved);
             updateDate();
             renderAll();
             loadConfigs();
@@ -620,32 +505,29 @@
 
         function updateDate() {
             const now = new Date();
-            const options = { day: '2-digit', month: 'long', year: 'numeric' };
+            const options = { day: '2-digit', month: 'long' };
             document.getElementById('current-date').innerText = now.toLocaleDateString('pt-BR', options);
         }
 
-        // NAVEGAÇÃO
         function switchPage(pageId, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(`page-${pageId}`).classList.add('active');
-            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-
+            if(el) el.classList.add('active');
             if (pageId === 'history') renderHistory();
             if (pageId === 'report') renderReport();
+            window.scrollTo(0,0);
         }
 
-        // FORMS
         function showForm(type, platform = '') {
             hideForms();
             const form = document.getElementById(`form-${type}`);
             form.style.display = 'block';
             if (platform) {
                 currentPlatform.type = platform;
-                document.getElementById('earning-title').innerText = `Nova Corrida: ${platform}`;
+                document.getElementById('earning-title').innerText = `${platform}`;
             }
-            form.scrollIntoView({ behavior: 'smooth' });
+            form.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function hideForms() {
@@ -653,24 +535,16 @@
             document.getElementById('form-expense').style.display = 'none';
         }
 
-        // SALVAR DADOS
         function saveEarning() {
             const val = parseFloat(document.getElementById('earn-value').value);
             const km = parseFloat(document.getElementById('earn-km').value) || 0;
-            const obs = document.getElementById('earn-obs').value;
-
-            if (!val) return alert('Insira um valor!');
-
+            if (!val) return;
             state.currentDay.earnings.push({
-                id: Date.now(),
-                platform: currentPlatform.type,
-                value: val,
-                km: km,
-                obs: obs,
+                id: Date.now(), platform: currentPlatform.type, value: val, km: km,
                 time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
             });
-
-            clearInputs(['earn-value', 'earn-km', 'earn-obs']);
+            document.getElementById('earn-value').value = '';
+            document.getElementById('earn-km').value = '';
             hideForms();
             saveAndSync();
         }
@@ -678,25 +552,14 @@
         function saveExpense() {
             const type = document.getElementById('exp-type').value;
             const val = parseFloat(document.getElementById('exp-value').value);
-            const obs = document.getElementById('exp-obs').value;
-
-            if (!val) return alert('Insira um valor!');
-
+            if (!val) return;
             state.currentDay.expenses.push({
-                id: Date.now(),
-                type: type,
-                value: val,
-                obs: obs,
+                id: Date.now(), type: type, value: val,
                 time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
             });
-
-            clearInputs(['exp-value', 'exp-obs']);
+            document.getElementById('exp-value').value = '';
             hideForms();
             saveAndSync();
-        }
-
-        function clearInputs(ids) {
-            ids.forEach(id => document.getElementById(id).value = '');
         }
 
         function saveAndSync() {
@@ -704,50 +567,32 @@
             renderAll();
         }
 
-        // RENDERIZAÇÃO HOJE
         function renderAll() {
             const list = document.getElementById('today-list');
             list.innerHTML = '';
+            let totalEarn = 0, totalExp = 0;
 
-            let totalEarn = 0;
-            let totalExp = 0;
-
-            // Render Earnings
             state.currentDay.earnings.forEach(e => {
                 totalEarn += e.value;
                 const card = document.createElement('div');
-                card.className = `entry-card glass type-${e.platform.toLowerCase()}`;
-                card.innerHTML = `
-                    <div class="entry-info">
-                        <h4>${e.platform}</h4>
-                        <p>${e.time} • ${e.km} KM ${e.obs ? '• ' + e.obs : ''}</p>
-                    </div>
-                    <div class="entry-val">R$ ${e.value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                `;
+                card.className = `entry-card card type-${e.platform.toLowerCase()}`;
+                card.innerHTML = `<div class="entry-info"><h4>${e.platform}</h4><p>${e.time} • ${e.km} KM</p></div><div class="entry-val">R$ ${e.value.toFixed(2)}</div>`;
                 list.appendChild(card);
             });
 
-            // Render Expenses
             state.currentDay.expenses.forEach(e => {
                 totalExp += e.value;
                 const card = document.createElement('div');
-                card.className = `entry-card glass type-gasto`;
-                card.innerHTML = `
-                    <div class="entry-info">
-                        <h4>${e.type}</h4>
-                        <p>${e.time} ${e.obs ? '• ' + e.obs : ''}</p>
-                    </div>
-                    <div class="entry-val">- R$ ${e.value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                `;
+                card.className = `entry-card card type-gasto`;
+                card.innerHTML = `<div class="entry-info"><h4>${e.type}</h4><p>${e.time}</p></div><div class="entry-val">- R$ ${e.value.toFixed(2)}</div>`;
                 list.appendChild(card);
             });
 
             const net = totalEarn - totalExp;
-            document.getElementById('today-earnings').innerText = `R$ ${totalEarn.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('today-expenses').innerText = `R$ ${totalExp.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('today-net').innerText = `R$ ${net.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('today-earnings').innerText = `R$ ${totalEarn.toFixed(2)}`;
+            document.getElementById('today-expenses').innerText = `R$ ${totalExp.toFixed(2)}`;
+            document.getElementById('today-net').innerText = `R$ ${net.toFixed(2)}`;
             document.getElementById('today-net').style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
-
             updateKmStats();
             updateGoalCircle(net);
         }
@@ -756,216 +601,69 @@
             const start = parseFloat(document.getElementById('km-start').value) || 0;
             const end = parseFloat(document.getElementById('km-end').value) || 0;
             const diff = Math.max(0, end - start);
-
             state.currentDay.kmStart = start;
             state.currentDay.kmEnd = end;
-
             document.getElementById('stat-total-km').innerText = diff.toFixed(1);
-
             let totalEarn = state.currentDay.earnings.reduce((acc, curr) => acc + curr.value, 0);
             let fuelExp = state.currentDay.expenses.filter(e => e.type === 'Combustível').reduce((acc, curr) => acc + curr.value, 0);
-
             const costPerKm = diff > 0 ? fuelExp / diff : 0;
             const earnPerKm = diff > 0 ? totalEarn / diff : 0;
-
-            document.getElementById('stat-cost-km').innerText = `R$ ${costPerKm.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('stat-earn-km').innerText = `R$ ${earnPerKm.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-
-            // Verificação de Inteligência
+            document.getElementById('stat-cost-km').innerText = `R$ ${costPerKm.toFixed(2)}`;
+            document.getElementById('stat-earn-km').innerText = `R$ ${earnPerKm.toFixed(2)}`;
             if (state.config.consumption > 0 && state.config.fuelPrice > 0 && diff > 0) {
-                const estimatedCostPerKm = state.config.fuelPrice / state.config.consumption;
-                const warning = document.getElementById('fuel-warning');
-                warning.style.display = costPerKm > (estimatedCostPerKm * 1.2) ? 'block' : 'none';
+                const estCost = state.config.fuelPrice / state.config.consumption;
+                document.getElementById('fuel-warning').style.display = costPerKm > (estCost * 1.25) ? 'block' : 'none';
             }
         }
 
         function updateGoalCircle(currentNet) {
             const goal = state.config.goal || 0;
             const circle = document.getElementById('goal-progress');
-            if (goal <= 0) {
-                circle.style.strokeDashoffset = 125.6;
-                return;
-            }
+            if (goal <= 0) { circle.style.strokeDashoffset = 138.2; return; }
             const pct = Math.min(100, (currentNet / goal) * 100);
-            const offset = 125.6 - (125.6 * pct / 100);
-            circle.style.strokeDashoffset = offset;
+            circle.style.strokeDashoffset = 138.2 - (138.2 * pct / 100);
         }
 
-        // ENCERRAR DIA
         function endDay() {
-            const start = state.currentDay.kmStart;
-            const end = state.currentDay.kmEnd;
-            if (!start || !end || end < start) return alert('Verifique a quilometragem!');
-
-            const totalEarn = state.currentDay.earnings.reduce((acc, curr) => acc + curr.value, 0);
-            const totalExp = state.currentDay.expenses.reduce((acc, curr) => acc + curr.value, 0);
-            const kmRodados = end - start;
-
-            const dayRecord = {
-                date: new Date().toLocaleDateString('pt-BR'),
-                timestamp: Date.now(),
-                earnings: [...state.currentDay.earnings],
-                expenses: [...state.currentDay.expenses],
-                totalEarn,
-                totalExp,
-                net: totalEarn - totalExp,
-                kmRodados,
-                kmStart: start,
-                kmEnd: end
-            };
-
-            state.history.unshift(dayRecord);
-            
-            // Mostrar Resumo
-            const modalBody = document.getElementById('modal-body');
-            modalBody.innerHTML = `
-                <p><strong>Ganhos:</strong> R$ ${totalEarn.toFixed(2)}</p>
-                <p><strong>Gastos:</strong> R$ ${totalExp.toFixed(2)}</p>
-                <p><strong>Lucro:</strong> R$ ${(totalEarn - totalExp).toFixed(2)}</p>
-                <p><strong>KM Rodados:</strong> ${kmRodados.toFixed(1)} km</p>
-            `;
+            const start = state.currentDay.kmStart, end = state.currentDay.kmEnd;
+            if (!start || !end || end < start) return alert('Informe a KM corretamente!');
+            const totalEarn = state.currentDay.earnings.reduce((a, b) => a + b.value, 0);
+            const totalExp = state.currentDay.expenses.reduce((a, b) => a + b.value, 0);
+            const km = end - start;
+            state.history.unshift({
+                date: new Date().toLocaleDateString('pt-BR'), timestamp: Date.now(),
+                earnings: [...state.currentDay.earnings], expenses: [...state.currentDay.expenses],
+                totalEarn, totalExp, net: totalEarn - totalExp, kmRodados: km
+            });
+            document.getElementById('modal-body').innerHTML = `<p><b>Lucro:</b> R$ ${(totalEarn-totalExp).toFixed(2)}</p><p><b>Distância:</b> ${km.toFixed(1)} KM</p><p><b>Média:</b> R$ ${(totalEarn/km).toFixed(2)}/KM</p>`;
             document.getElementById('summary-modal').style.display = 'flex';
-
-            // Resetar
             state.currentDay = { earnings: [], expenses: [], kmStart: null, kmEnd: null };
-            document.getElementById('km-start').value = '';
-            document.getElementById('km-end').value = '';
+            document.getElementById('km-start').value = ''; document.getElementById('km-end').value = '';
             saveAndSync();
         }
 
-        function closeModal() {
-            document.getElementById('summary-modal').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('summary-modal').style.display = 'none'; }
 
-        // HISTÓRICO
         function renderHistory() {
             const container = document.getElementById('history-list');
-            container.innerHTML = '';
-
-            if (state.history.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:var(--text-muted)">Nenhum registro encontrado.</p>';
-                return;
-            }
-
+            container.innerHTML = state.history.length === 0 ? '<p style="text-align:center; padding:20px">Nada por aqui.</p>' : '';
             state.history.forEach((day, index) => {
                 const item = document.createElement('div');
-                item.className = 'history-item glass';
-                item.innerHTML = `
-                    <div class="history-header" onclick="toggleDetails(${index})">
-                        <div>
-                            <div style="font-weight: 600;">${day.date}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted)">${day.kmRodados.toFixed(1)} km rodados</div>
-                        </div>
-                        <div style="text-align: right">
-                            <div style="font-weight: 700; color: ${day.net >= 0 ? 'var(--success)' : 'var(--danger)'}">
-                                R$ ${day.net.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-                            </div>
-                        </div>
-                    </div>
-                    <div id="details-${index}" class="history-details">
-                        <p style="font-size: 0.8rem; margin-bottom: 5px;"><strong>Detalhamento:</strong></p>
-                        ${day.earnings.map(e => `<div class="stat-row"><span>${e.platform}</span><span>R$ ${e.value.toFixed(2)}</span></div>`).join('')}
-                        <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 5px 0;">
-                        ${day.expenses.map(e => `<div class="stat-row" style="color: var(--danger)"><span>${e.type}</span><span>- R$ ${e.value.toFixed(2)}</span></div>`).join('')}
-                        <button class="btn-outline btn-danger" style="width: 100%; margin-top: 15px;" onclick="deleteHistory(${index})">Excluir Registro</button>
-                    </div>
-                `;
+                item.className = 'history-item card';
+                item.innerHTML = `<div class="history-header"><div><b>${day.date}</b><br><small>${day.kmRodados.toFixed(1)} KM</small></div><div style="color:${day.net>=0?'var(--success)':'var(--danger)'}; font-weight:800">R$ ${day.net.toFixed(2)}</div></div>`;
                 container.appendChild(item);
             });
         }
 
-        function toggleDetails(index) {
-            const el = document.getElementById(`details-${index}`);
-            el.classList.toggle('open');
-        }
-
-        function deleteHistory(index) {
-            if (confirm('Tem certeza que deseja excluir este dia?')) {
-                state.history.splice(index, 1);
-                saveAndSync();
-                renderHistory();
-            }
-        }
-
-        // RELATÓRIOS
-        let currentTab = 'week';
-        function changeReportTab(tab, el) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            renderReport();
-        }
-
         function renderReport() {
             const container = document.getElementById('report-content');
-            const now = Date.now();
-            let filtered = [];
-
-            if (currentTab === 'week') {
-                const weekAgo = now - (7 * 24 * 60 * 60 * 1000);
-                filtered = state.history.filter(h => h.timestamp > weekAgo);
-            } else if (currentTab === 'month') {
-                const monthAgo = now - (30 * 24 * 60 * 60 * 1000);
-                filtered = state.history.filter(h => h.timestamp > monthAgo);
-            } else {
-                filtered = state.history;
-            }
-
-            if (filtered.length === 0) {
-                container.innerHTML = '<p style="text-align:center">Sem dados no período.</p>';
-                return;
-            }
-
-            let uberTotal = 0, p99Total = 0, particularTotal = 0;
-            let totalKm = 0, fuelTotal = 0, totalEarn = 0, totalNet = 0;
-            let bestDay = { net: -999999 }, worstDay = { net: 999999 };
-
-            filtered.forEach(day => {
-                totalKm += day.kmRodados;
-                totalEarn += day.totalEarn;
-                totalNet += day.net;
-                fuelTotal += day.expenses.filter(e => e.type === 'Combustível').reduce((a, b) => a + b.value, 0);
-                
-                day.earnings.forEach(e => {
-                    if (e.platform === 'Uber') uberTotal += e.value;
-                    if (e.platform === '99') p99Total += e.value;
-                    if (e.platform === 'Particular') particularTotal += e.value;
-                });
-
-                if (day.net > bestDay.net) bestDay = day;
-                if (day.net < worstDay.net) worstDay = day;
-            });
-
-            const fuelPct = totalEarn > 0 ? (fuelTotal / totalEarn) * 100 : 0;
-            const avgDailyEarn = totalEarn / filtered.length;
-            const avgDailyKm = totalKm / filtered.length;
-
-            container.innerHTML = `
-                <div class="summary-item full" style="margin-bottom: 20px;">
-                    <label>Lucro no Período</label>
-                    <div class="value net">R$ ${totalNet.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                </div>
-
-                <label style="font-size: 0.8rem; color: var(--text-muted)">Divisão por Plataforma</label>
-                <div class="stat-row"><span>Uber</span><span>R$ ${uberTotal.toFixed(2)}</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="width: ${(uberTotal/totalEarn*100)||0}%; background: #000"></div></div>
-                
-                <div class="stat-row"><span>99</span><span>R$ ${p99Total.toFixed(2)}</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="width: ${(p99Total/totalEarn*100)||0}%; background: var(--99)"></div></div>
-                
-                <div class="stat-row"><span>Particular</span><span>R$ ${particularTotal.toFixed(2)}</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="width: ${(particularTotal/totalEarn*100)||0}%; background: var(--particular)"></div></div>
-
-                <div class="stat-row"><span>KM Rodados</span><span>${totalKm.toFixed(1)} km</span></div>
-                <div class="stat-row"><span>Gasto Combustível</span><span>R$ ${fuelTotal.toFixed(2)} (${fuelPct.toFixed(1)}%)</span></div>
-                <div class="stat-row"><span>Média Ganho Diário</span><span>R$ ${avgDailyEarn.toFixed(2)}</span></div>
-                <div class="stat-row"><span>Média KM Diária</span><span>${avgDailyKm.toFixed(1)} km</span></div>
-                <div class="stat-row" style="color: var(--success)"><span>Melhor Dia</span><span>${bestDay.date} (R$ ${bestDay.net.toFixed(2)})</span></div>
-                <div class="stat-row" style="color: var(--danger)"><span>Pior Dia</span><span>${worstDay.date} (R$ ${worstDay.net.toFixed(2)})</span></div>
-            `;
+            const filtered = state.history; 
+            if (filtered.length === 0) { container.innerHTML = 'Sem dados.'; return; }
+            let km = 0, earn = 0, net = 0;
+            filtered.forEach(d => { km += d.kmRodados; earn += d.totalEarn; net += d.net; });
+            container.innerHTML = `<div class="stat-row"><span>Total Ganho</span><span>R$ ${earn.toFixed(2)}</span></div><div class="stat-row"><span>Lucro Real</span><span style="color:var(--success)">R$ ${net.toFixed(2)}</span></div><div class="stat-row"><span>KM Total</span><span>${km.toFixed(1)}</span></div><div class="stat-row"><span>Média Ganho/KM</span><span>R$ ${(earn/km).toFixed(2)}</span></div>`;
         }
 
-        // CONFIGURAÇÕES
         function loadConfigs() {
             document.getElementById('set-goal').value = state.config.goal || '';
             document.getElementById('set-cons').value = state.config.consumption || '';
@@ -980,73 +678,12 @@
         }
 
         function exportWhatsApp() {
-            const now = new Date();
-            const month = now.toLocaleString('pt-BR', { month: 'long' });
-            const year = now.getFullYear();
-            
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-            const filtered = state.history.filter(h => h.timestamp >= monthStart);
-
-            if (filtered.length === 0) return alert('Sem dados para este mês!');
-
-            let uber = 0, p99 = 0, particular = 0, fuel = 0, others = 0, km = 0, net = 0;
-            filtered.forEach(day => {
-                km += day.kmRodados;
-                net += day.net;
-                day.earnings.forEach(e => {
-                    if (e.platform === 'Uber') uber += e.value;
-                    if (e.platform === '99') p99 += e.value;
-                    if (e.platform === 'Particular') particular += e.value;
-                });
-                day.expenses.forEach(ex => {
-                    if (ex.type === 'Combustível') fuel += ex.value;
-                    else others += ex.value;
-                });
-            });
-
-            const totalBruto = uber + p99 + particular;
-            const costKm = km > 0 ? fuel / km : 0;
-
-            const text = `🚗 Relatório - ${month.charAt(0).toUpperCase() + month.slice(1)}/${year}
-━━━━━━━━━━━━━━━
-Uber: R$ ${uber.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-99: R$ ${p99.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-Particular: R$ ${particular.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-━━━━━━━━━━━━━━━
-Total bruto: R$ ${totalBruto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-Combustível: R$ ${fuel.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-Outros gastos: R$ ${others.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-━━━━━━━━━━━━━━━
-💰 Lucro líquido: R$ ${net.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-📍 KM rodados: ${km.toFixed(1)} km
-📊 Custo/KM: R$ ${costKm.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-
-            copyToClipboard(text);
-            alert('Relatório copiado para a área de transferência! Cole no WhatsApp.');
+            const text = `🚗 MotoControle\nLucro Total: R$ ${state.history.reduce((a,b)=>a+b.net,0).toFixed(2)}`;
+            const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            alert('Relatório copiado!');
         }
 
-        function copyToClipboard(text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-        }
-
-        function clearAllData() {
-            if (confirm('ATENÇÃO: Isso apagará TODOS os seus registros. Deseja continuar?')) {
-                if (confirm('TEM CERTEZA ABSOLUTA? Esta ação não pode ser desfeita.')) {
-                    state = {
-                        currentDay: { earnings: [], expenses: [], kmStart: null, kmEnd: null },
-                        history: [],
-                        config: { goal: 0, consumption: 0, fuelPrice: 0 }
-                    };
-                    saveAndSync();
-                    location.reload();
-                }
-            }
-        }
+        function clearAllData() { if(confirm('Apagar tudo?')) { localStorage.clear(); location.reload(); } }
 
         init();
     </script>
