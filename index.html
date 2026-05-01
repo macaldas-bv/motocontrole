@@ -352,10 +352,6 @@
                     <label>Valor Recebido (R$)</label>
                     <input type="number" id="earn-value" step="0.01" inputmode="decimal">
                 </div>
-                <div class="input-group">
-                    <label>KM desta corrida</label>
-                    <input type="number" id="earn-km" step="0.1" inputmode="decimal">
-                </div>
                 <button class="btn-save" onclick="saveEarning()">Confirmar Corrida</button>
                 <p onclick="hideForms()" style="text-align:center; margin-top:15px; font-size:0.8rem; color:var(--text-muted)">Cancelar</p>
             </div>
@@ -537,14 +533,12 @@
 
         function saveEarning() {
             const val = parseFloat(document.getElementById('earn-value').value);
-            const km = parseFloat(document.getElementById('earn-km').value) || 0;
             if (!val) return;
             state.currentDay.earnings.push({
-                id: Date.now(), platform: currentPlatform.type, value: val, km: km,
+                id: Date.now(), platform: currentPlatform.type, value: val,
                 time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
             });
             document.getElementById('earn-value').value = '';
-            document.getElementById('earn-km').value = '';
             hideForms();
             saveAndSync();
         }
@@ -576,7 +570,7 @@
                 totalEarn += e.value;
                 const card = document.createElement('div');
                 card.className = `entry-card card type-${e.platform.toLowerCase()}`;
-                card.innerHTML = `<div class="entry-info"><h4>${e.platform}</h4><p>${e.time} • ${e.km} KM</p></div><div class="entry-val">R$ ${e.value.toFixed(2)}</div>`;
+                card.innerHTML = `<div class="entry-info"><h4>${e.platform}</h4><p>${e.time}</p></div><div class="entry-val">R$ ${e.value.toFixed(2)}</div>`;
                 list.appendChild(card);
             });
 
@@ -655,13 +649,60 @@
             });
         }
 
-        function renderReport() {
+        function changeReportTab(period, el) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            renderReport(period);
+        }
+
+        function renderReport(period = 'week') {
             const container = document.getElementById('report-content');
-            const filtered = state.history; 
-            if (filtered.length === 0) { container.innerHTML = 'Sem dados.'; return; }
-            let km = 0, earn = 0, net = 0;
-            filtered.forEach(d => { km += d.kmRodados; earn += d.totalEarn; net += d.net; });
-            container.innerHTML = `<div class="stat-row"><span>Total Ganho</span><span>R$ ${earn.toFixed(2)}</span></div><div class="stat-row"><span>Lucro Real</span><span style="color:var(--success)">R$ ${net.toFixed(2)}</span></div><div class="stat-row"><span>KM Total</span><span>${km.toFixed(1)}</span></div><div class="stat-row"><span>Média Ganho/KM</span><span>R$ ${(earn/km).toFixed(2)}</span></div>`;
+            const now = new Date();
+            
+            const filtered = state.history.filter(d => {
+                const itemDate = new Date(d.timestamp);
+                if (period === 'week') {
+                    const startOfWeek = new Date(now);
+                    startOfWeek.setDate(now.getDate() - now.getDay());
+                    startOfWeek.setHours(0,0,0,0);
+                    return itemDate >= startOfWeek;
+                }
+                if (period === 'month') {
+                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    return itemDate >= startOfMonth;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted)">Sem dados neste período.</p>';
+                return;
+            }
+
+            let km = 0, earn = 0, exp = 0, net = 0;
+            filtered.forEach(d => {
+                km += d.kmRodados;
+                earn += d.totalEarn;
+                exp += d.totalExp || 0;
+                net += d.net;
+            });
+
+            const periodLabel = period === 'week' ? 'esta semana' : (period === 'month' ? 'este mês' : 'todo o período');
+
+            container.innerHTML = `
+                <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:15px; text-transform:uppercase; font-weight:700">Resumo de ${periodLabel}</p>
+                <div class="stat-row"><span>Ganhos Brutos</span><span>R$ ${earn.toFixed(2)}</span></div>
+                <div class="stat-row"><span>Gastos Totais</span><span style="color:var(--danger)">R$ ${exp.toFixed(2)}</span></div>
+                <div class="stat-row" style="border-top:1px solid var(--card-border); padding-top:10px; margin-top:10px">
+                    <span>LUCRO LÍQUIDO</span><span style="color:var(--success); font-weight:800">R$ ${net.toFixed(2)}</span>
+                </div>
+                <div class="progress-bar" style="margin-top:10px"><div class="progress-fill" style="width:100%; background:var(--success)"></div></div>
+                <div class="stat-row"><span>Distância Percorrida</span><span>${km.toFixed(1)} KM</span></div>
+                <div class="stat-row"><span>Média R$/KM</span><span>R$ ${km > 0 ? (earn/km).toFixed(2) : '0,00'}</span></div>
+                <button class="btn-save" style="background:#25d366; margin-top:20px; font-size:0.9rem; padding:12px;" onclick="exportWhatsApp('${period}')">
+                    Compartilhar no WhatsApp
+                </button>
+            `;
         }
 
         function loadConfigs() {
@@ -677,10 +718,45 @@
             saveAndSync();
         }
 
-        function exportWhatsApp() {
-            const text = `🚗 ModoControle\nLucro Total: R$ ${state.history.reduce((a,b)=>a+b.net,0).toFixed(2)}`;
-            const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-            alert('Relatório copiado!');
+        function exportWhatsApp(period = 'month') {
+            const now = new Date();
+            const filtered = state.history.filter(d => {
+                const itemDate = new Date(d.timestamp);
+                if (period === 'week') {
+                    const startOfWeek = new Date(now);
+                    startOfWeek.setDate(now.getDate() - now.getDay());
+                    startOfWeek.setHours(0,0,0,0);
+                    return itemDate >= startOfWeek;
+                }
+                if (period === 'month') {
+                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    return itemDate >= startOfMonth;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) return alert('Sem dados para enviar!');
+
+            let km = 0, earn = 0, exp = 0, net = 0;
+            filtered.forEach(d => {
+                km += d.kmRodados;
+                earn += d.totalEarn;
+                exp += d.totalExp || 0;
+                net += d.net;
+            });
+
+            const label = period === 'week' ? 'Semana Atual' : (period === 'month' ? 'Mês Atual' : 'Histórico Total');
+            
+            const message = `📊 *MODOCONTROLE - RELATÓRIO*\n` +
+                `📅 Período: *${label}*\n\n` +
+                `💰 Ganhos Brutos: *R$ ${earn.toFixed(2)}*\n` +
+                `📉 Gastos Totais: *R$ ${exp.toFixed(2)}*\n` +
+                `✅ *LUCRO LÍQUIDO: R$ ${net.toFixed(2)}*\n\n` +
+                `🛣️ Distância: ${km.toFixed(1)} KM\n` +
+                `⛽ Média: R$ ${(km > 0 ? earn/km : 0).toFixed(2)}/KM\n\n` +
+                `_Gerado por ModoControle_`;
+
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
         }
 
         function clearAllData() { if(confirm('Apagar tudo?')) { localStorage.clear(); location.reload(); } }
