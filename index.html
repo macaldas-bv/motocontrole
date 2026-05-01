@@ -20,6 +20,7 @@
             --uber: #000000;
             --99: #ffcc00;
             --particular: #2563eb;
+            --indrive: #00d1b2;
             --text-main: #f9fafb;
             --text-muted: #9ca3af;
             --radius: 20px;
@@ -123,8 +124,9 @@
         .btn-platform:active { transform: scale(0.92); filter: brightness(1.2); }
         .btn-uber { background: #000; color: white; border: 1px solid #333; }
         .btn-99 { background: var(--99); color: #000; }
+        .btn-indrive { background: var(--indrive); color: #000; }
         .btn-particular { background: var(--particular); color: white; }
-        .btn-expense { background: var(--danger); color: white; grid-column: span 3; margin-top: 10px; padding: 20px; font-size: 1rem; }
+        .btn-expense { background: var(--danger); color: white; }
 
         .form-inline {
             display: none;
@@ -203,6 +205,7 @@
         .type-uber { border-left-color: #fff; background: #000; }
         .type-99 { border-left-color: var(--99); background: rgba(255, 204, 0, 0.05); }
         .type-particular { border-left-color: var(--particular); background: rgba(37, 99, 235, 0.05); }
+        .type-indrive { border-left-color: var(--indrive); background: rgba(0, 209, 178, 0.05); }
         .type-gasto { border-left-color: var(--danger); background: rgba(244, 63, 94, 0.05); }
 
         nav {
@@ -339,9 +342,10 @@
             </div>
 
             <div class="section-title">Ganhos por Plataforma</div>
-            <div class="grid-buttons">
+            <div class="grid-buttons" style="grid-template-columns: repeat(2, 1fr);">
                 <button class="btn-platform btn-uber" onclick="showForm('earning', 'Uber')">Uber</button>
                 <button class="btn-platform btn-99" onclick="showForm('earning', '99')">99</button>
+                <button class="btn-platform btn-indrive" onclick="showForm('earning', 'InDrive')">InDrive</button>
                 <button class="btn-platform btn-particular" onclick="showForm('earning', 'Particular')">Particular</button>
                 <button class="btn-platform btn-expense" onclick="showForm('expense')">Adicionar Gasto</button>
             </div>
