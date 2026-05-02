@@ -209,7 +209,17 @@
         .type-indrive { border-left-color: var(--indrive); background: rgba(0, 209, 178, 0.05); }
         .type-gasto { border-left-color: var(--danger); background: rgba(244, 63, 94, 0.05); }
 
-        nav {
+        .btn-edit-small {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-top: 5px;
+            cursor: pointer;
+        }
             position: fixed;
             bottom: 24px;
             left: 20px;
@@ -504,6 +514,31 @@
         </div>
     </div>
 
+    <!-- MODAL EDITAR HISTÓRICO -->
+    <div id="edit-history-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center; padding:20px;">
+        <div class="card" style="width:100%; max-width:400px; padding:25px; border-color:var(--primary)">
+            <h3 style="margin-bottom:20px;">Editar Registro</h3>
+            <input type="hidden" id="edit-index">
+            <div class="input-group">
+                <label>Ganhos Totais (R$)</label>
+                <input type="number" id="edit-total-earn" step="0.01" inputmode="decimal">
+            </div>
+            <div class="input-group">
+                <label>Gastos Totais (R$)</label>
+                <input type="number" id="edit-total-exp" step="0.01" inputmode="decimal">
+            </div>
+            <div class="input-group">
+                <label>KM Rodados</label>
+                <input type="number" id="edit-km" step="0.1" inputmode="decimal">
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:25px;">
+                <button class="btn-outline" onclick="closeEditHistory()" style="padding:15px">Cancelar</button>
+                <button class="btn-save" onclick="saveEditHistory()" style="padding:15px">Salvar</button>
+            </div>
+            <p onclick="deleteHistoryItem()" style="text-align:center; color:var(--danger); margin-top:20px; font-size:0.8rem; font-weight:700">EXCLUIR ESTE DIA</p>
+        </div>
+    </div>
+
     <script>
         let state = {
             currentDay: { earnings: [], expenses: [], kmStart: null, kmEnd: null },
@@ -689,13 +724,11 @@
             
             let totalFuel = 0;
 
-            // Calcula combustível do dia atual (abastecimentos ainda não encerrados)
             state.currentDay.expenses.forEach(e => {
                 if (e.type === 'Combustível') totalFuel += e.value;
             });
 
             state.history.forEach((day, index) => {
-                // Soma combustível do histórico
                 if (day.expenses) {
                     day.expenses.forEach(e => {
                         if (e.type === 'Combustível') totalFuel += e.value;
@@ -704,11 +737,57 @@
 
                 const item = document.createElement('div');
                 item.className = 'history-item card';
-                item.innerHTML = `<div class="history-header"><div><b>${day.date}</b><br><small>${day.kmRodados.toFixed(1)} KM</small></div><div style="color:${day.net>=0?'var(--success)':'var(--danger)'}; font-weight:800">R$ ${day.net.toFixed(2)}</div></div>`;
+                item.innerHTML = `
+                    <div class="history-header">
+                        <div><b>${day.date}</b><br><small>${day.kmRodados.toFixed(1)} KM</small></div>
+                        <div style="text-align: right">
+                            <div style="color:${day.net>=0?'var(--success)':'var(--danger)'}; font-weight:800">R$ ${day.net.toFixed(2)}</div>
+                            <button class="btn-edit-small" onclick="openEditHistory(${index})">Editar</button>
+                        </div>
+                    </div>`;
                 container.appendChild(item);
             });
 
             fuelDisplay.innerText = `R$ ${totalFuel.toFixed(2)}`;
+        }
+
+        function openEditHistory(index) {
+            const day = state.history[index];
+            document.getElementById('edit-index').value = index;
+            document.getElementById('edit-total-earn').value = day.totalEarn;
+            document.getElementById('edit-total-exp').value = day.totalExp;
+            document.getElementById('edit-km').value = day.kmRodados;
+            document.getElementById('edit-history-modal').style.display = 'flex';
+        }
+
+        function closeEditHistory() {
+            document.getElementById('edit-history-modal').style.display = 'none';
+        }
+
+        function saveEditHistory() {
+            const index = document.getElementById('edit-index').value;
+            const earn = parseFloat(document.getElementById('edit-total-earn').value) || 0;
+            const exp = parseFloat(document.getElementById('edit-total-exp').value) || 0;
+            const km = parseFloat(document.getElementById('edit-km').value) || 0;
+
+            state.history[index].totalEarn = earn;
+            state.history[index].totalExp = exp;
+            state.history[index].net = earn - exp;
+            state.history[index].kmRodados = km;
+
+            saveAndSync();
+            closeEditHistory();
+            renderHistory();
+        }
+
+        function deleteHistoryItem() {
+            if (confirm('Tem certeza que deseja excluir este dia permanentemente?')) {
+                const index = document.getElementById('edit-index').value;
+                state.history.splice(index, 1);
+                saveAndSync();
+                closeEditHistory();
+                renderHistory();
+            }
         }
 
         function changeReportTab(period, el) {
