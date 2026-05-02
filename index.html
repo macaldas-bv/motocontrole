@@ -510,16 +510,21 @@
         const currentPlatform = { type: '' };
 
         function init() {
-            // Tenta carregar os dados da chave nova ou da antiga (migração)
-            const saved = localStorage.getItem('modoControleData') || localStorage.getItem('motoControleData');
+            const keys = ['modoControleData', 'motoControleData'];
+            let saved = null;
+            for (const key of keys) {
+                saved = localStorage.getItem(key);
+                if (saved) break;
+            }
             
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
-                    // Garante que o estado seja mesclado corretamente para não perder propriedades
-                    state.currentDay = data.currentDay || state.currentDay;
-                    state.history = data.history || state.history;
-                    state.config = { ...state.config, ...data.config };
+                    if (data && typeof data === 'object') {
+                        if (data.currentDay) state.currentDay = data.currentDay;
+                        if (data.history) state.history = data.history;
+                        if (data.config) state.config = { ...state.config, ...data.config };
+                    }
                 } catch (e) {
                     console.error("Erro ao carregar dados salvos:", e);
                 }
@@ -588,8 +593,12 @@
         }
 
         function saveAndSync() {
-            localStorage.setItem('modoControleData', JSON.stringify(state));
-            renderAll();
+            try {
+                localStorage.setItem('modoControleData', JSON.stringify(state));
+                renderAll();
+            } catch (e) {
+                console.error("Falha ao salvar no LocalStorage:", e);
+            }
         }
 
         function renderAll() {
@@ -755,17 +764,26 @@
         }
 
         function loadConfigs() {
-            document.getElementById('set-goal').value = state.config.goal || '';
-            document.getElementById('set-cons').value = state.config.consumption || '';
-            document.getElementById('set-price').value = state.config.fuelPrice || '';
+            const goal = state.config.goal;
+            const cons = state.config.consumption;
+            const price = state.config.fuelPrice;
+
+            document.getElementById('set-goal').value = (goal && goal > 0) ? goal : '';
+            document.getElementById('set-cons').value = (cons && cons > 0) ? cons : '';
+            document.getElementById('set-price').value = (price && price > 0) ? price : '';
         }
 
         function saveConfig(showFeedback = false) {
-            state.config.goal = parseFloat(document.getElementById('set-goal').value) || 0;
-            state.config.consumption = parseFloat(document.getElementById('set-cons').value) || 0;
-            state.config.fuelPrice = parseFloat(document.getElementById('set-price').value) || 0;
+            const goalVal = parseFloat(document.getElementById('set-goal').value);
+            const consVal = parseFloat(document.getElementById('set-cons').value);
+            const priceVal = parseFloat(document.getElementById('set-price').value);
+
+            state.config.goal = isNaN(goalVal) ? 0 : goalVal;
+            state.config.consumption = isNaN(consVal) ? 0 : consVal;
+            state.config.fuelPrice = isNaN(priceVal) ? 0 : priceVal;
+
             saveAndSync();
-            if (showFeedback) alert('Configurações salvas com sucesso!');
+            if (showFeedback) alert('Ajustes salvos com sucesso!');
         }
 
         function exportWhatsApp(period = 'month') {
