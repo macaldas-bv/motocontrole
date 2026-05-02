@@ -419,6 +419,19 @@
                 <button class="btn-outline" onclick="switchPage('dashboard', null)">← Menu</button>
                 <h1>Histórico</h1>
             </header>
+            
+            <div id="fuel-summary-card" class="card" style="padding: 20px; margin-bottom: 24px; border-color: var(--primary); background: rgba(59, 130, 246, 0.05);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="icon-box" style="background: var(--primary); width: 48px; height: 48px;">
+                        <svg viewBox="0 0 24 24" stroke="white" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14M17 10h4a2 2 0 0 1 2 2v10M7 10h6M7 14h6M19 14h2M12 22V6"/></svg>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Gasto em Combustível</label>
+                        <div id="total-fuel-value" style="font-size: 1.5rem; font-weight: 900; color: var(--primary);">R$ 0,00</div>
+                    </div>
+                </div>
+            </div>
+
             <div id="history-list" class="scroll-list"></div>
         </div>
 
@@ -657,13 +670,31 @@
 
         function renderHistory() {
             const container = document.getElementById('history-list');
+            const fuelDisplay = document.getElementById('total-fuel-value');
             container.innerHTML = state.history.length === 0 ? '<p style="text-align:center; padding:20px">Nada por aqui.</p>' : '';
+            
+            let totalFuel = 0;
+
+            // Calcula combustível do dia atual (abastecimentos ainda não encerrados)
+            state.currentDay.expenses.forEach(e => {
+                if (e.type === 'Combustível') totalFuel += e.value;
+            });
+
             state.history.forEach((day, index) => {
+                // Soma combustível do histórico
+                if (day.expenses) {
+                    day.expenses.forEach(e => {
+                        if (e.type === 'Combustível') totalFuel += e.value;
+                    });
+                }
+
                 const item = document.createElement('div');
                 item.className = 'history-item card';
                 item.innerHTML = `<div class="history-header"><div><b>${day.date}</b><br><small>${day.kmRodados.toFixed(1)} KM</small></div><div style="color:${day.net>=0?'var(--success)':'var(--danger)'}; font-weight:800">R$ ${day.net.toFixed(2)}</div></div>`;
                 container.appendChild(item);
             });
+
+            fuelDisplay.innerText = `R$ ${totalFuel.toFixed(2)}`;
         }
 
         function changeReportTab(period, el) {
