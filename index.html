@@ -443,6 +443,7 @@
                     <div>
                         <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Gasto em Combustível</label>
                         <div id="total-fuel-value" style="font-size: 1.5rem; font-weight: 900; color: var(--primary);">R$ 0,00</div>
+                        <div id="total-km-value" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">KM Total: 0.0</div>
                     </div>
                 </div>
             </div>
@@ -721,7 +722,8 @@
             state.history.unshift({
                 date: new Date().toLocaleDateString('pt-BR'), timestamp: Date.now(),
                 earnings: [...state.currentDay.earnings], expenses: [...state.currentDay.expenses],
-                totalEarn, totalExp, net: totalEarn - totalExp, kmRodados: km
+                totalEarn, totalExp, net: totalEarn - totalExp, kmRodados: km,
+                kmStart: start, kmEnd: end
             });
             document.getElementById('modal-body').innerHTML = `<p><b>Lucro:</b> R$ ${(totalEarn-totalExp).toFixed(2)}</p><p><b>Distância:</b> ${km.toFixed(1)} KM</p><p><b>Média:</b> R$ ${(totalEarn/km).toFixed(2)}/KM</p>`;
             document.getElementById('summary-modal').style.display = 'flex';
@@ -735,15 +737,18 @@
         function renderHistory() {
             const container = document.getElementById('history-list');
             const fuelDisplay = document.getElementById('total-fuel-value');
+            const kmDisplay = document.getElementById('total-km-value');
             container.innerHTML = state.history.length === 0 ? '<p style="text-align:center; padding:20px">Nada por aqui.</p>' : '';
             
             let totalFuel = 0;
+            let totalKm = 0;
 
             state.currentDay.expenses.forEach(e => {
                 if (e.type === 'Combustível') totalFuel += e.value;
             });
 
             state.history.forEach((day, index) => {
+                totalKm += day.kmRodados || 0;
                 if (day.expenses) {
                     day.expenses.forEach(e => {
                         if (e.type === 'Combustível') totalFuel += e.value;
@@ -754,7 +759,11 @@
                 item.className = 'history-item card';
                 item.innerHTML = `
                     <div class="history-header">
-                        <div><b>${day.date}</b><br><small>${day.kmRodados.toFixed(1)} KM</small></div>
+                        <div>
+                            <b>${day.date}</b><br>
+                            <small>${day.kmRodados.toFixed(1)} KM percorridos</small><br>
+                            <small style="color:var(--text-muted)">Odômetro: ${day.kmEnd || '---'}</small>
+                        </div>
                         <div style="text-align: right">
                             <div style="color:${day.net>=0?'var(--success)':'var(--danger)'}; font-weight:800">R$ ${day.net.toFixed(2)}</div>
                             <button class="btn-edit-small" onclick="openEditHistory(${index})">Editar</button>
@@ -764,6 +773,7 @@
             });
 
             fuelDisplay.innerText = `R$ ${totalFuel.toFixed(2)}`;
+            kmDisplay.innerText = `Distância Total: ${totalKm.toFixed(1)} KM`;
         }
 
         function openEditHistory(index) {
