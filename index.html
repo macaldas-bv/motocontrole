@@ -7,7 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ModoControle">
-    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/3b82f6/ffffff?text=MC">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
     <title>ModoControle - Gestão de Ganhos</title>
     <style>
         :root {
@@ -301,12 +302,9 @@
     <div class="container">
         <!-- TELA DASHBOARD (INICIAL) -->
         <div id="page-dashboard" class="page active">
-            <header>
-                <div>
-                    <h1>ModoControle</h1>
-                    <div id="current-date" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"></div>
-                </div>
-                <div class="icon-box" style="width:40px; height:40px; background:none"><svg viewBox="0 0 24 24" stroke="var(--primary)" stroke-width="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+            <header style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 30px;">
+                <img src="logo.png" alt="ModoControle" style="width: 180px; height: auto; margin-bottom: 10px;">
+                <div id="current-date" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;"></div>
             </header>
 
             <div class="dashboard-grid">
