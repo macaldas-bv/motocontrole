@@ -466,6 +466,7 @@
                     <label>Preço Combustível (R$)</label>
                     <input type="number" id="set-price" oninput="saveConfig()" step="0.01" inputmode="decimal">
                 </div>
+                <button class="btn-save" onclick="saveConfig(true)" style="margin-top: 10px;">Salvar Ajustes</button>
             </div>
             <button class="btn-save" style="background: var(--success);" onclick="exportWhatsApp()">Gerar Relatório WhatsApp</button>
             <button class="btn-save" style="background: var(--danger); margin-top: 20px;" onclick="clearAllData()">Limpar Tudo</button>
@@ -759,11 +760,12 @@
             document.getElementById('set-price').value = state.config.fuelPrice || '';
         }
 
-        function saveConfig() {
+        function saveConfig(showFeedback = false) {
             state.config.goal = parseFloat(document.getElementById('set-goal').value) || 0;
             state.config.consumption = parseFloat(document.getElementById('set-cons').value) || 0;
             state.config.fuelPrice = parseFloat(document.getElementById('set-price').value) || 0;
             saveAndSync();
+            if (showFeedback) alert('Configurações salvas com sucesso!');
         }
 
         function exportWhatsApp(period = 'month') {
