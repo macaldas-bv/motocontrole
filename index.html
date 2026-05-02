@@ -677,16 +677,30 @@
             const diff = Math.max(0, end - start);
             state.currentDay.kmStart = start;
             state.currentDay.kmEnd = end;
+            
             document.getElementById('stat-total-km').innerText = diff.toFixed(1);
+            
             let totalEarn = state.currentDay.earnings.reduce((acc, curr) => acc + curr.value, 0);
             let fuelExp = state.currentDay.expenses.filter(e => e.type === 'Combustível').reduce((acc, curr) => acc + curr.value, 0);
-            const costPerKm = diff > 0 ? fuelExp / diff : 0;
+            
+            // Cálculo do custo estimado (baseado nos Ajustes)
+            const estCostPerKm = (state.config.consumption > 0 && state.config.fuelPrice > 0) 
+                ? (state.config.fuelPrice / state.config.consumption) 
+                : 0;
+
+            // Se houver abastecimento hoje, usa o custo real do dia, senão usa o estimado dos ajustes
+            const actualTodayCost = diff > 0 ? fuelExp / diff : 0;
+            const displayCost = actualTodayCost > 0 ? actualTodayCost : estCostPerKm;
+            
             const earnPerKm = diff > 0 ? totalEarn / diff : 0;
-            document.getElementById('stat-cost-km').innerText = `R$ ${costPerKm.toFixed(2)}`;
+
+            document.getElementById('stat-cost-km').innerText = `R$ ${displayCost.toFixed(2)}`;
             document.getElementById('stat-earn-km').innerText = `R$ ${earnPerKm.toFixed(2)}`;
-            if (state.config.consumption > 0 && state.config.fuelPrice > 0 && diff > 0) {
-                const estCost = state.config.fuelPrice / state.config.consumption;
-                document.getElementById('fuel-warning').style.display = costPerKm > (estCost * 1.25) ? 'block' : 'none';
+            
+            if (estCostPerKm > 0 && actualTodayCost > (estCostPerKm * 1.25)) {
+                document.getElementById('fuel-warning').style.display = 'block';
+            } else {
+                document.getElementById('fuel-warning').style.display = 'none';
             }
         }
 
