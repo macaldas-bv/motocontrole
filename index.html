@@ -295,6 +295,55 @@
         #summary-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
         .modal-content { max-width: 400px; width: 100%; padding: 40px 24px; text-align: center; border: 3px solid var(--success); }
         .fuel-warning { color: var(--warning); font-size: 0.75rem; font-weight: 800; margin-top: 8px; display: none; }
+
+        /* Estilos para Abastecimento */
+        .fuel-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .fuel-stat-item { padding: 15px 10px; text-align: center; }
+        .fuel-stat-item label { display: block; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+        .fuel-stat-item .value { font-size: 1rem; font-weight: 800; color: var(--text-main); }
+        
+        .chart-container { 
+            height: 150px; 
+            display: flex; 
+            align-items: flex-end; 
+            gap: 8px; 
+            padding: 20px 10px; 
+            margin-bottom: 20px; 
+            overflow-x: auto;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .chart-bar-wrapper { flex: 1; min-width: 40px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .chart-bar { width: 100%; border-top-left-radius: 4px; border-top-right-radius: 4px; transition: height 0.5s; position: relative; }
+        .bar-val { font-size: 0.6rem; font-weight: 800; color: var(--text-main); }
+        .bar-label { font-size: 0.5rem; color: var(--text-muted); white-space: nowrap; }
+        
+        .fuel-list-item { padding: 18px; margin-bottom: 8px; }
+        .fuel-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .fuel-list-details { display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 0.7rem; color: var(--text-muted); gap: 5px; }
+        .km-l-badge { padding: 3px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 800; }
+        .km-l-good { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .km-l-bad { background: rgba(244, 63, 94, 0.2); color: var(--danger); }
+        
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 15px 0; cursor: pointer; }
+        .checkbox-group input { width: 20px; height: 20px; margin: 0; cursor: pointer; -webkit-appearance: checkbox; }
+        .checkbox-group label { margin: 0; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--text-main); }
+
+        .alert-card {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: fuelPulse 2s infinite;
+        }
+        @keyframes fuelPulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
     </style>
 </head>
 <body>
@@ -306,6 +355,26 @@
                 <img src="logo.jpeg" alt="ModoControle" style="width: 180px; height: auto; margin-bottom: 10px;">
                 <div id="current-date" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;"></div>
             </header>
+
+            <div id="fuel-alert-container"></div>
+
+            <div id="fuel-summary-dashboard" class="card" style="padding: 16px; margin-bottom: 20px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="icon-box" style="width: 40px; height: 40px; background: rgba(59, 130, 246, 0.1);">
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;" stroke="var(--primary)"><path d="M3 22V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14M17 10h4a2 2 0 0 1 2 2v10M7 10h6M7 14h6M19 14h2M12 22V6"/></svg>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Último KM/L</div>
+                            <div id="dash-last-kml" style="font-size: 1.1rem; font-weight: 800;">0.0</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div id="dash-kml-diff" style="font-size: 0.75rem; font-weight: 800;">---</div>
+                        <div style="font-size: 0.6rem; color: var(--text-muted);">vs média</div>
+                    </div>
+                </div>
+            </div>
 
             <div class="dashboard-grid">
                 <div class="dash-card card" onclick="switchPage('today', document.querySelectorAll('.nav-item')[0])">
@@ -475,6 +544,7 @@
                 <div class="input-group">
                     <label>Consumo Médio (KM/L)</label>
                     <input type="number" id="set-cons" oninput="saveConfig()" inputmode="numeric">
+                    <button class="btn-edit-small" style="margin-top: 8px; width: 100%; border-style: dashed;" onclick="useRealAverage()">Usar média real calculada</button>
                 </div>
                 <div class="input-group">
                     <label>Preço Combustível (R$)</label>
@@ -484,6 +554,85 @@
             </div>
             <button class="btn-save" style="background: var(--success);" onclick="exportWhatsApp()">Gerar Relatório WhatsApp</button>
             <button class="btn-save" style="background: var(--danger); margin-top: 20px;" onclick="clearAllData()">Limpar Tudo</button>
+        </div>
+
+        <!-- TELA ABASTECIMENTO -->
+        <div id="page-fueling" class="page">
+            <header>
+                <button class="btn-outline" onclick="switchPage('dashboard', null)">← Menu</button>
+                <h1>Abastecimento</h1>
+            </header>
+
+            <div class="fuel-stats-grid">
+                <div class="fuel-stat-item card">
+                    <label>Média Geral</label>
+                    <div id="fuel-avg-total" class="value">0.0</div>
+                </div>
+                <div class="fuel-stat-item card">
+                    <label>Melhor KM/L</label>
+                    <div id="fuel-best" class="value" style="color: var(--success)">0.0</div>
+                </div>
+                <div class="fuel-stat-item card">
+                    <label>Pior KM/L</label>
+                    <div id="fuel-worst" class="value" style="color: var(--danger)">0.0</div>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <div>
+                        <label style="display: block; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Gasto Total</label>
+                        <div id="fuel-total-spent" style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">R$ 0,00</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <label style="display: block; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Custo/KM Médio</label>
+                        <div id="fuel-avg-cost-km" style="font-size: 1.2rem; font-weight: 800;">R$ 0,00</div>
+                    </div>
+                </div>
+                <div id="fuel-trend-label" style="font-size: 0.7rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--card-border); padding-top: 10px;">
+                    Tendência últimos 3: <strong id="fuel-trend-val" style="color: white">0.0 KM/L</strong>
+                </div>
+            </div>
+
+            <div class="section-title">Histórico de Consumo</div>
+            <div id="fuel-chart" class="chart-container card"></div>
+
+            <div class="section-title">Novo Abastecimento</div>
+            <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                <div class="input-group">
+                    <label>Data</label>
+                    <input type="date" id="fuel-date">
+                </div>
+                <div class="input-group">
+                    <label>KM Atual (Odômetro)</label>
+                    <input type="number" id="fuel-km" inputmode="numeric">
+                </div>
+                <div class="odo-grid">
+                    <div class="input-group">
+                        <label>Litros</label>
+                        <input type="number" id="fuel-liters" step="0.01" inputmode="decimal" oninput="calcPricePerLiter()">
+                    </div>
+                    <div class="input-group">
+                        <label>Valor Total (R$)</label>
+                        <input type="number" id="fuel-value" step="0.01" inputmode="decimal" oninput="calcPricePerLiter()">
+                    </div>
+                </div>
+                <div id="price-per-liter-label" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; text-align: right;">
+                    Preço por litro: <strong id="price-liter-val">R$ 0,00</strong>
+                </div>
+                <div class="input-group">
+                    <label>Posto (Opcional)</label>
+                    <input type="text" id="fuel-station" placeholder="Ex: Posto Ipiranga">
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="fuel-full" checked>
+                    <label for="fuel-full">Tanque Cheio?</label>
+                </div>
+                <button class="btn-save" onclick="saveFueling()">Salvar Abastecimento</button>
+            </div>
+
+            <div class="section-title">Registros</div>
+            <div id="fuel-list"></div>
         </div>
     </div>
 
@@ -495,6 +644,10 @@
         <div class="nav-item" onclick="switchPage('history', this)">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             Histórico
+        </div>
+        <div class="nav-item" onclick="switchPage('fueling', this)">
+            <svg viewBox="0 0 24 24"><path d="M3 22V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14M17 10h4a2 2 0 0 1 2 2v10M7 10h6M7 14h6M19 14h2M12 22V6"/></svg>
+            Abastecer
         </div>
         <div class="nav-item" onclick="switchPage('report', this)">
             <svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
@@ -543,6 +696,7 @@
         let state = {
             currentDay: { earnings: [], expenses: [], kmStart: null, kmEnd: null },
             history: [],
+            fuelings: [],
             config: { goal: 0, consumption: 0, fuelPrice: 0 }
         };
 
@@ -556,6 +710,8 @@
                 if (saved) break;
             }
             
+            const savedFuel = localStorage.getItem('modocontrole_abastecimentos');
+            
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
@@ -568,10 +724,17 @@
                     console.error("Erro ao carregar dados salvos:", e);
                 }
             }
+
+            if (savedFuel) {
+                try {
+                    state.fuelings = JSON.parse(savedFuel);
+                } catch (e) { console.error("Erro ao carregar abastecimentos:", e); }
+            }
             
             updateDate();
             renderAll();
             loadConfigs();
+            document.getElementById('fuel-date').valueAsDate = new Date();
         }
 
         function updateDate() {
@@ -587,6 +750,7 @@
             if(el) el.classList.add('active');
             if (pageId === 'history') renderHistory();
             if (pageId === 'report') renderReport();
+            if (pageId === 'fueling') renderFuelPage();
             window.scrollTo(0,0);
         }
 
@@ -634,6 +798,7 @@
         function saveAndSync() {
             try {
                 localStorage.setItem('modoControleData', JSON.stringify(state));
+                localStorage.setItem('modocontrole_abastecimentos', JSON.stringify(state.fuelings));
                 renderAll();
             } catch (e) {
                 console.error("Falha ao salvar no LocalStorage:", e);
@@ -668,6 +833,8 @@
             document.getElementById('today-net').style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
             updateKmStats();
             updateGoalCircle(net);
+            checkFuelAlert();
+            updateDashboardFuelSummary();
         }
 
         function updateKmStats() {
@@ -933,7 +1100,235 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
         }
 
-        function clearAllData() { if(confirm('Apagar tudo?')) { localStorage.clear(); location.reload(); } }
+        function calcPricePerLiter() {
+            const liters = parseFloat(document.getElementById('fuel-liters').value);
+            const val = parseFloat(document.getElementById('fuel-value').value);
+            const res = (liters > 0 && val > 0) ? val / liters : 0;
+            document.getElementById('price-liter-val').innerText = `R$ ${res.toFixed(3)}`;
+        }
+
+        function saveFueling() {
+            const date = document.getElementById('fuel-date').value;
+            const km = parseFloat(document.getElementById('fuel-km').value);
+            const liters = parseFloat(document.getElementById('fuel-liters').value);
+            const val = parseFloat(document.getElementById('fuel-value').value);
+            const full = document.getElementById('fuel-full').checked;
+            const station = document.getElementById('fuel-station').value;
+
+            if (!date || !km || !liters || !val) return alert('Preencha todos os campos obrigatórios!');
+
+            state.fuelings.unshift({
+                id: Date.now(), date, km, liters, value: val, full, station,
+                pricePerLiter: val / liters
+            });
+
+            // Reset form
+            document.getElementById('fuel-km').value = '';
+            document.getElementById('fuel-liters').value = '';
+            document.getElementById('fuel-value').value = '';
+            document.getElementById('fuel-station').value = '';
+            calcPricePerLiter();
+
+            saveAndSync();
+            renderFuelPage();
+            alert('Abastecimento registrado!');
+        }
+
+        function renderFuelPage() {
+            const list = document.getElementById('fuel-list');
+            list.innerHTML = '';
+            
+            // Cálculos de KM/L Real
+            // Ordenar por KM para garantir cálculo correto
+            const sorted = [...state.fuelings].sort((a, b) => a.km - b.km);
+            
+            sorted.forEach((f, i) => {
+                f.realKmL = 0;
+                if (f.full && i > 0) {
+                    // Encontrar o último tanque cheio anterior
+                    let prevFull = null;
+                    for (let j = i - 1; j >= 0; j--) {
+                        if (sorted[j].full) {
+                            prevFull = sorted[j];
+                            break;
+                        }
+                    }
+                    if (prevFull) {
+                        const dist = f.km - prevFull.km;
+                        f.realKmL = dist / f.liters;
+                    }
+                }
+            });
+
+            // Estatísticas
+            let totalSpent = 0, totalLiters = 0, totalKmWithFuel = 0;
+            let best = 0, worst = 999, sumKmL = 0, countKmL = 0;
+            let last3KmL = [];
+
+            state.fuelings.forEach(f => {
+                totalSpent += f.value;
+                totalLiters += f.liters;
+                const match = sorted.find(s => s.id === f.id);
+                f.realKmL = match ? match.realKmL : 0;
+
+                if (f.realKmL > 0) {
+                    sumKmL += f.realKmL;
+                    countKmL++;
+                    if (f.realKmL > best) best = f.realKmL;
+                    if (f.realKmL < worst) worst = f.realKmL;
+                    if (last3KmL.length < 3) last3KmL.push(f.realKmL);
+                }
+            });
+
+            if (worst === 999) worst = 0;
+            const avgKmL = countKmL > 0 ? sumKmL / countKmL : 0;
+            const trend = last3KmL.length > 0 ? last3KmL.reduce((a, b) => a + b, 0) / last3KmL.length : 0;
+
+            // Encontrar total KM rodados desde o primeiro abastecimento
+            if (sorted.length > 1) {
+                totalKmWithFuel = sorted[sorted.length - 1].km - sorted[0].km;
+            }
+
+            document.getElementById('fuel-avg-total').innerText = avgKmL.toFixed(2);
+            document.getElementById('fuel-best').innerText = best.toFixed(2);
+            document.getElementById('fuel-worst').innerText = worst.toFixed(2);
+            document.getElementById('fuel-total-spent').innerText = `R$ ${totalSpent.toFixed(2)}`;
+            document.getElementById('fuel-avg-cost-km').innerText = `R$ ${totalKmWithFuel > 0 ? (totalSpent / totalKmWithFuel).toFixed(2) : '0,00'}`;
+            document.getElementById('fuel-trend-val').innerText = `${trend.toFixed(2)} KM/L`;
+
+            // Gráfico
+            renderFuelChart(state.fuelings.slice(0, 10), avgKmL);
+
+            // Lista
+            state.fuelings.forEach((f, idx) => {
+                const item = document.createElement('div');
+                item.className = 'fuel-list-item card';
+                
+                let kmlTag = '';
+                if (f.realKmL > 0) {
+                    const diff = ((f.realKmL - avgKmL) / avgKmL) * 100;
+                    const colorClass = diff < -10 ? 'km-l-bad' : (f.realKmL > avgKmL ? 'km-l-good' : '');
+                    kmlTag = `<span class="km-l-badge ${colorClass}">${f.realKmL.toFixed(2)} KM/L</span>`;
+                }
+
+                item.innerHTML = `
+                    <div class="fuel-list-header">
+                        <div>
+                            <strong style="font-size:0.9rem">${new Date(f.date + 'T00:00:00').toLocaleDateString('pt-BR')}</strong>
+                            ${f.station ? `<br><small style="color:var(--text-muted)">${f.station}</small>` : ''}
+                        </div>
+                        <div style="text-align:right">
+                            ${kmlTag}
+                            <div style="font-size:0.8rem; font-weight:800; margin-top:4px">R$ ${f.value.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="fuel-list-details">
+                        <span>${f.km} KM</span>
+                        <span>${f.liters.toFixed(2)} L</span>
+                        <span>R$ ${f.pricePerLiter.toFixed(3)}/L</span>
+                    </div>
+                    <div style="text-align:right; margin-top:10px">
+                        <button class="btn-edit-small" style="color:var(--danger); border-color:var(--danger); background:none" onclick="deleteFueling(${idx})">Excluir</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function renderFuelChart(data, avg) {
+            const chart = document.getElementById('fuel-chart');
+            chart.innerHTML = '';
+            if (data.length === 0) { chart.innerHTML = '<p style="margin:auto; font-size:0.7rem; color:var(--text-muted)">Sem dados de consumo</p>'; return; }
+
+            const displayData = [...data].reverse();
+            const max = Math.max(...displayData.map(d => d.realKmL || 0), avg, 5);
+
+            displayData.forEach(d => {
+                if (d.realKmL === 0) return;
+                const h = (d.realKmL / max) * 100;
+                const isGood = d.realKmL >= avg;
+                
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'chart-bar-wrapper';
+                barWrapper.innerHTML = `
+                    <div class="bar-val">${d.realKmL.toFixed(1)}</div>
+                    <div class="chart-bar" style="height:${h}%; background:${isGood ? 'var(--success)' : 'var(--danger)'}"></div>
+                    <div class="bar-label">${new Date(d.date + 'T00:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})}</div>
+                `;
+                chart.appendChild(barWrapper);
+            });
+        }
+
+        function deleteFueling(idx) {
+            if (confirm('Excluir este abastecimento?')) {
+                state.fuelings.splice(idx, 1);
+                saveAndSync();
+                renderFuelPage();
+            }
+        }
+
+        function useRealAverage() {
+            const last3 = state.fuelings.filter(f => f.realKmL > 0).slice(0, 3);
+            if (last3.length === 0) return alert('Ainda não há dados de consumo real suficientes.');
+            const avg = last3.reduce((a, b) => a + b.realKmL, 0) / last3.length;
+            document.getElementById('set-cons').value = avg.toFixed(2);
+            saveConfig(true);
+        }
+
+        function updateDashboardFuelSummary() {
+            const last = state.fuelings.find(f => f.realKmL > 0);
+            const dashCard = document.getElementById('fuel-summary-dashboard');
+            if (!last) { dashCard.style.display = 'none'; return; }
+            
+            dashCard.style.display = 'block';
+            document.getElementById('dash-last-kml').innerText = last.realKmL.toFixed(2);
+            
+            const configAvg = state.config.consumption || 0;
+            const diffEl = document.getElementById('dash-kml-diff');
+            if (configAvg > 0) {
+                const diffPct = ((last.realKmL - configAvg) / configAvg) * 100;
+                diffEl.innerText = `${diffPct > 0 ? '+' : ''}${diffPct.toFixed(1)}%`;
+                diffEl.style.color = diffPct >= 0 ? 'var(--success)' : 'var(--danger)';
+            } else {
+                diffEl.innerText = '---';
+                diffEl.style.color = 'var(--text-muted)';
+            }
+        }
+
+        function checkFuelAlert() {
+            const container = document.getElementById('fuel-alert-container');
+            container.innerHTML = '';
+            
+            const lastFuel = state.fuelings[0];
+            if (!lastFuel || !lastFuel.full) return;
+
+            const avgKmL = state.config.consumption || 0;
+            if (avgKmL <= 0) return;
+
+            // KM atual é o maior entre kmStart/kmEnd de hoje ou o último histórico
+            let currentKm = lastFuel.km;
+            if (state.currentDay.kmEnd) currentKm = Math.max(currentKm, state.currentDay.kmEnd);
+            if (state.history.length > 0) currentKm = Math.max(currentKm, state.history[0].kmEnd);
+
+            const distSinceFuel = currentKm - lastFuel.km;
+            const estAutonomy = lastFuel.liters * avgKmL; // Autonomia baseada no que foi colocado (estimativa conservadora)
+            // Na verdade a autonomia é baseada na capacidade do tanque, mas como não temos isso,
+            // usamos litros abastecidos * média como uma métrica de "você já rodou o equivalente ao que abasteceu".
+            // Melhor: se o usuário rodou mais que 80% da autonomia estimada baseada nos litros colocados.
+            
+            if (distSinceFuel > (estAutonomy * 0.9)) {
+                const alert = document.createElement('div');
+                alert.className = 'alert-card';
+                alert.innerHTML = `
+                    <div style="font-size: 1.5rem;">⛽</div>
+                    <div>
+                        <strong style="display:block; color:var(--warning)">Atenção: Reserva Próxima</strong>
+                        <span style="font-size:0.75rem; color:var(--text-muted)">Você já rodou ${distSinceFuel.toFixed(0)} KM desde o último abastecimento.</span>
+                    </div>
+                `;
+                container.appendChild(alert);
+            }
+        }
 
         init();
     </script>
