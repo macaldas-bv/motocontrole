@@ -290,6 +290,12 @@
         .tab-btn { flex: 1; padding: 14px; border-radius: 12px; border: none; background: none; color: var(--text-muted); font-weight: 800; font-size: 0.8rem; }
         .tab-btn.active { background: var(--primary); color: white; }
 
+        .report-item { margin-bottom: 20px; padding: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); }
+        .report-item h3 { font-size: 0.9rem; margin-bottom: 15px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; }
+        .stat-row span:first-child { color: var(--text-muted); font-weight: 600; }
+        .stat-row span:last-child { color: var(--text-main); font-weight: 800; }
+
         .btn-end-day { width: 100%; padding: 22px; background: var(--success); color: white; border: none; border-radius: 20px; font-weight: 900; font-size: 1.2rem; margin-top: 40px; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
 
         #summary-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
@@ -344,6 +350,52 @@
             70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
             100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
         }
+
+        /* Estilos para Custos do Veículo */
+        .vault-card {
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 6px solid var(--success);
+            transition: all 0.3s ease;
+        }
+        .vault-card.warning { border-left-color: var(--warning); }
+        .vault-card.danger { border-left-color: var(--danger); }
+        
+        .vault-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .vault-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1rem; }
+        .vault-icon { font-size: 1.4rem; }
+        .vault-balance { font-size: 1.4rem; font-weight: 900; color: var(--success); }
+        
+        .progress-container { width: 100%; height: 8px; background: var(--card-border); border-radius: 4px; margin: 10px 0; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 0%; background: var(--success); transition: width 0.5s ease; }
+        .vault-card.warning .progress-bar-fill { background: var(--warning); }
+        .vault-card.danger .progress-bar-fill { background: var(--danger); }
+        
+        .vault-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .vault-km { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
+        
+        .btn-reset { padding: 8px 16px; border-radius: 10px; border: none; background: rgba(244, 63, 94, 0.1); color: var(--danger); font-size: 0.75rem; font-weight: 800; cursor: pointer; }
+        
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .config-item { background: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: 12px; border: 1px solid var(--card-border); }
+        .config-item label { display: block; font-size: 0.65rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 700; }
+        .config-item input { padding: 8px; font-size: 0.9rem; }
+
+        .dash-custos-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--card-border);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            cursor: pointer;
+        }
+        .dash-custos-header { display: flex; justify-content: space-between; align-items: center; }
+        .dash-custos-title { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+        .dash-custos-val { font-size: 1.1rem; font-weight: 900; color: var(--text-main); }
+        .dash-custos-next { font-size: 0.75rem; color: var(--warning); font-weight: 700; }
     </style>
 </head>
 <body>
@@ -373,6 +425,20 @@
                         <div id="dash-kml-diff" style="font-size: 0.75rem; font-weight: 800;">---</div>
                         <div style="font-size: 0.6rem; color: var(--text-muted);">vs média</div>
                     </div>
+                </div>
+            </div>
+
+            <div id="dash-custos-summary" class="dash-custos-card" onclick="switchPage('custos', null)">
+                <div class="dash-custos-header">
+                    <span class="dash-custos-title">Custos do Veículo</span>
+                    <span id="dash-custos-km-val" class="dash-custos-val">R$ 0,51/KM</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <div style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px;">Reservado este mês</div>
+                        <div id="dash-custos-month-total" style="font-size: 1.2rem; font-weight: 800; color: var(--success);">R$ 0,00</div>
+                    </div>
+                    <div id="dash-custos-next-alert" class="dash-custos-next">Próximo: ---</div>
                 </div>
             </div>
 
@@ -528,7 +594,7 @@
                 <button class="tab-btn" onclick="changeReportTab('month', this)">Mês</button>
                 <button class="tab-btn" onclick="changeReportTab('total', this)">Total</button>
             </div>
-            <div id="report-content" class="card" style="padding: 24px;"></div>
+            <div id="report-content" style="padding: 0;"></div>
         </div>
 
         <div id="page-settings" class="page">
@@ -634,6 +700,62 @@
             <div class="section-title">Registros</div>
             <div id="fuel-list"></div>
         </div>
+
+        <!-- TELA CUSTOS DO VEÍCULO -->
+        <div id="page-custos" class="page">
+            <header>
+                <button class="btn-outline" onclick="switchPage('dashboard', null)">← Menu</button>
+                <h1>Custos do Veículo</h1>
+            </header>
+
+            <div class="report-tabs">
+                <button class="tab-custos-btn tab-btn active" onclick="switchCustosTab('cofres', this)">Cofres</button>
+                <button class="tab-custos-btn tab-btn" onclick="switchCustosTab('config', this)">Ajustes</button>
+                <button class="tab-custos-btn tab-btn" onclick="switchCustosTab('history-usos', this)">Uso</button>
+            </div>
+
+            <!-- SUB-PAGINA COFRES -->
+            <div id="custos-cofres" class="custos-subpage">
+                <div id="cofres-list"></div>
+            </div>
+
+            <!-- SUB-PAGINA CONFIG -->
+            <div id="custos-config" class="custos-subpage" style="display:none">
+                <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 15px;">Valores por KM</h3>
+                    <div id="config-items-list" class="config-grid">
+                        <!-- Gerado via JS -->
+                    </div>
+                    
+                    <div style="border-top: 1px solid var(--card-border); padding-top: 15px; margin-top: 5px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <span style="font-weight: 800;">TOTAL GERAL</span>
+                            <span id="config-total-km" style="font-size: 1.3rem; font-weight: 900; color: var(--primary);">R$ 0,51</span>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <button class="btn-outline" onclick="restoreCustosDefaults()">Padrões</button>
+                            <button class="btn-save" style="padding: 12px; font-size: 0.9rem;" onclick="saveCustosConfigs()">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 24px;">
+                    <h3 style="margin-bottom: 15px;">Marcos de KM</h3>
+                    <div id="config-marcos-list" class="config-grid">
+                        <!-- Gerado via JS -->
+                    </div>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px;">
+                        * Depreciação e Reserva não possuem marco pois acumulam indefinidamente.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SUB-PAGINA HISTORICO -->
+            <div id="custos-history-usos" class="custos-subpage" style="display:none">
+                <div id="usos-history-list"></div>
+            </div>
+        </div>
     </div>
 
     <nav>
@@ -648,6 +770,10 @@
         <div class="nav-item" onclick="switchPage('fueling', this)">
             <svg viewBox="0 0 24 24"><path d="M3 22V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14M17 10h4a2 2 0 0 1 2 2v10M7 10h6M7 14h6M19 14h2M12 22V6"/></svg>
             Abastecer
+        </div>
+        <div class="nav-item" onclick="switchPage('custos', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            Custos
         </div>
         <div class="nav-item" onclick="switchPage('report', this)">
             <svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
@@ -673,6 +799,10 @@
             <h3 style="margin-bottom:20px;">Editar Registro</h3>
             <input type="hidden" id="edit-index">
             <div class="input-group">
+                <label>Data</label>
+                <input type="date" id="edit-date">
+            </div>
+            <div class="input-group">
                 <label>Ganhos Totais (R$)</label>
                 <input type="number" id="edit-total-earn" step="0.01" inputmode="decimal">
             </div>
@@ -697,7 +827,24 @@
             currentDay: { earnings: [], expenses: [], kmStart: null, kmEnd: null },
             history: [],
             fuelings: [],
-            config: { goal: 0, consumption: 0, fuelPrice: 0 }
+            config: { goal: 0, consumption: 0, fuelPrice: 0 },
+            custosConfig: {
+                items: [
+                    { id: 'manutencao', name: 'Manutenção', valorKm: 0.15, marcoKm: 10000, icon: '🔧' },
+                    { id: 'pneus', name: 'Pneus', valorKm: 0.08, marcoKm: 40000, icon: '🛞' },
+                    { id: 'oleo', name: 'Óleo', valorKm: 0.03, marcoKm: 5000, icon: '🛢️' },
+                    { id: 'depreciacao', name: 'Depreciação', valorKm: 0.20, marcoKm: 0, icon: '📉' },
+                    { id: 'reserva', name: 'Reserva Emergência', valorKm: 0.05, marcoKm: 0, icon: '🆘' }
+                ]
+            },
+            cofres: {
+                manutencao: { saldo: 0, kmAcumulado: 0 },
+                pneus: { saldo: 0, kmAcumulado: 0 },
+                oleo: { saldo: 0, kmAcumulado: 0 },
+                depreciacao: { saldo: 0, kmAcumulado: 0 },
+                reserva: { saldo: 0, kmAcumulado: 0 }
+            },
+            historicoUsos: []
         };
 
         const currentPlatform = { type: '' };
@@ -730,10 +877,19 @@
                     state.fuelings = JSON.parse(savedFuel);
                 } catch (e) { console.error("Erro ao carregar abastecimentos:", e); }
             }
+
+            const savedCustosConfig = localStorage.getItem('modocontrole_custos_config');
+            const savedCofres = localStorage.getItem('modocontrole_cofres');
+            const savedHistoricoUsos = localStorage.getItem('modocontrole_historico_usos');
+
+            if (savedCustosConfig) try { state.custosConfig = JSON.parse(savedCustosConfig); } catch(e){}
+            if (savedCofres) try { state.cofres = JSON.parse(savedCofres); } catch(e){}
+            if (savedHistoricoUsos) try { state.historicoUsos = JSON.parse(savedHistoricoUsos); } catch(e){}
             
             updateDate();
             renderAll();
             loadConfigs();
+            loadCustosConfigs();
             document.getElementById('fuel-date').valueAsDate = new Date();
         }
 
@@ -751,6 +907,7 @@
             if (pageId === 'history') renderHistory();
             if (pageId === 'report') renderReport();
             if (pageId === 'fueling') renderFuelPage();
+            if (pageId === 'custos') renderCustosPage();
             window.scrollTo(0,0);
         }
 
@@ -799,6 +956,9 @@
             try {
                 localStorage.setItem('modoControleData', JSON.stringify(state));
                 localStorage.setItem('modocontrole_abastecimentos', JSON.stringify(state.fuelings));
+                localStorage.setItem('modocontrole_custos_config', JSON.stringify(state.custosConfig));
+                localStorage.setItem('modocontrole_cofres', JSON.stringify(state.cofres));
+                localStorage.setItem('modocontrole_historico_usos', JSON.stringify(state.historicoUsos));
                 renderAll();
             } catch (e) {
                 console.error("Falha ao salvar no LocalStorage:", e);
@@ -835,6 +995,7 @@
             updateGoalCircle(net);
             checkFuelAlert();
             updateDashboardFuelSummary();
+            updateDashboardCustos();
         }
 
         function updateKmStats() {
@@ -884,13 +1045,37 @@
             const totalEarn = state.currentDay.earnings.reduce((a, b) => a + b.value, 0);
             const totalExp = state.currentDay.expenses.reduce((a, b) => a + b.value, 0);
             const km = end - start;
+            
+            // Lógica de Custos do Veículo
+            let reservedToday = 0;
+            let detailsHtml = '';
+            state.custosConfig.items.forEach(item => {
+                const cost = km * item.valorKm;
+                state.cofres[item.id].saldo += cost;
+                state.cofres[item.id].kmAcumulado += km;
+                reservedToday += cost;
+                detailsHtml += `${item.name} R$ ${cost.toFixed(2)} | `;
+            });
+            // Remover o último separador
+            detailsHtml = detailsHtml.slice(0, -3);
+
             state.history.unshift({
                 date: new Date().toLocaleDateString('pt-BR'), timestamp: Date.now(),
                 earnings: [...state.currentDay.earnings], expenses: [...state.currentDay.expenses],
                 totalEarn, totalExp, net: totalEarn - totalExp, kmRodados: km,
-                kmStart: start, kmEnd: end
+                kmStart: start, kmEnd: end,
+                custosReservados: reservedToday
             });
-            document.getElementById('modal-body').innerHTML = `<p><b>Lucro:</b> R$ ${(totalEarn-totalExp).toFixed(2)}</p><p><b>Distância:</b> ${km.toFixed(1)} KM</p><p><b>Média:</b> R$ ${(totalEarn/km).toFixed(2)}/KM</p>`;
+            
+            document.getElementById('modal-body').innerHTML = `
+                <p><b>Lucro:</b> R$ ${(totalEarn-totalExp).toFixed(2)}</p>
+                <p><b>Distância:</b> ${km.toFixed(1)} KM</p>
+                <p><b>Média:</b> R$ ${(totalEarn/km).toFixed(2)}/KM</p>
+                <div style="margin-top:15px; padding-top:15px; border-top:1px dashed var(--card-border);">
+                    <p style="color:var(--warning); font-weight:800; font-size:0.85rem;">🔧 Reservado hoje para custos: R$ ${reservedToday.toFixed(2)}</p>
+                    <p style="font-size:0.65rem; color:var(--text-muted); line-height:1.4;">${detailsHtml}</p>
+                </div>
+            `;
             document.getElementById('summary-modal').style.display = 'flex';
             state.currentDay = { earnings: [], expenses: [], kmStart: null, kmEnd: null };
             document.getElementById('km-start').value = ''; document.getElementById('km-end').value = '';
@@ -944,6 +1129,14 @@
         function openEditHistory(index) {
             const day = state.history[index];
             document.getElementById('edit-index').value = index;
+            
+            // Converter timestamp para YYYY-MM-DD para o input date
+            const dateObj = new Date(day.timestamp);
+            const yyyy = dateObj.getFullYear();
+            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const dd = String(dateObj.getDate()).padStart(2, '0');
+            document.getElementById('edit-date').value = `${yyyy}-${mm}-${dd}`;
+            
             document.getElementById('edit-total-earn').value = day.totalEarn;
             document.getElementById('edit-total-exp').value = day.totalExp;
             document.getElementById('edit-km').value = day.kmRodados;
@@ -956,18 +1149,31 @@
 
         function saveEditHistory() {
             const index = document.getElementById('edit-index').value;
+            const newDateStr = document.getElementById('edit-date').value;
             const earn = parseFloat(document.getElementById('edit-total-earn').value) || 0;
             const exp = parseFloat(document.getElementById('edit-total-exp').value) || 0;
             const km = parseFloat(document.getElementById('edit-km').value) || 0;
 
+            if (!newDateStr) return alert('Selecione uma data!');
+
+            // Criar data ajustando para o fuso horário local (evitar problema de -1 dia)
+            const [y, m, d] = newDateStr.split('-').map(Number);
+            const newDateObj = new Date(y, m - 1, d, 12, 0, 0); // Meio-dia para evitar problemas de fuso
+            
+            state.history[index].date = newDateObj.toLocaleDateString('pt-BR');
+            state.history[index].timestamp = newDateObj.getTime();
             state.history[index].totalEarn = earn;
             state.history[index].totalExp = exp;
             state.history[index].net = earn - exp;
             state.history[index].kmRodados = km;
 
+            // Reordenar histórico por data (mais recente primeiro)
+            state.history.sort((a, b) => b.timestamp - a.timestamp);
+
             saveAndSync();
             closeEditHistory();
             renderHistory();
+            updateDashboardCustos(); // Atualizar resumo mensal se a data mudou
         }
 
         function deleteHistoryItem() {
@@ -988,52 +1194,109 @@
 
         function renderReport(period = 'week') {
             const container = document.getElementById('report-content');
+            container.innerHTML = '';
             const now = new Date();
             
-            const filtered = state.history.filter(d => {
-                const itemDate = new Date(d.timestamp);
-                if (period === 'week') {
-                    const startOfWeek = new Date(now);
-                    startOfWeek.setDate(now.getDate() - now.getDay());
-                    startOfWeek.setHours(0,0,0,0);
-                    return itemDate >= startOfWeek;
-                }
-                if (period === 'month') {
-                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                    return itemDate >= startOfMonth;
-                }
-                return true;
-            });
+            if (period === 'week') {
+                // Relatório por semanas do mês atual
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                
+                const monthData = state.history.filter(d => {
+                    const date = new Date(d.timestamp);
+                    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+                });
 
-            if (filtered.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted)">Sem dados neste período.</p>';
-                return;
+                if (monthData.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted)">Sem dados este mês.</p>';
+                    return;
+                }
+
+                // Agrupar por semana (1-7, 8-14, 15-21, 22+)
+                const weeks = [
+                    { name: 'Semana 1 (Dias 01-07)', data: [] },
+                    { name: 'Semana 2 (Dias 08-14)', data: [] },
+                    { name: 'Semana 3 (Dias 15-21)', data: [] },
+                    { name: 'Semana 4+ (Dias 22+)', data: [] }
+                ];
+
+                monthData.forEach(d => {
+                    const day = new Date(d.timestamp).getDate();
+                    if (day <= 7) weeks[0].data.push(d);
+                    else if (day <= 14) weeks[1].data.push(d);
+                    else if (day <= 21) weeks[2].data.push(d);
+                    else weeks[3].data.push(d);
+                });
+
+                weeks.reverse().forEach(w => {
+                    if (w.data.length > 0) {
+                        container.appendChild(createReportCard(w.name, w.data));
+                    }
+                });
+
+            } else if (period === 'month') {
+                // Relatório do mês atual
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                const monthData = state.history.filter(d => {
+                    const date = new Date(d.timestamp);
+                    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+                });
+
+                if (monthData.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted)">Sem dados este mês.</p>';
+                    return;
+                }
+
+                const monthName = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                container.appendChild(createReportCard(monthName, monthData, true));
+
+            } else if (period === 'total') {
+                // Relatório agrupado por meses
+                const groups = {};
+                state.history.forEach(d => {
+                    const date = new Date(d.timestamp);
+                    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    if (!groups[key]) groups[key] = { name: date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }), data: [] };
+                    groups[key].data.push(d);
+                });
+
+                const sortedKeys = Object.keys(groups).sort().reverse();
+                if (sortedKeys.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted)">Sem dados históricos.</p>';
+                    return;
+                }
+
+                sortedKeys.forEach(key => {
+                    container.appendChild(createReportCard(groups[key].name, groups[key].data));
+                });
             }
+        }
 
+        function createReportCard(title, data, isMain = false) {
             let km = 0, earn = 0, exp = 0, net = 0;
-            filtered.forEach(d => {
+            data.forEach(d => {
                 km += d.kmRodados;
                 earn += d.totalEarn;
                 exp += d.totalExp || 0;
                 net += d.net;
             });
 
-            const periodLabel = period === 'week' ? 'esta semana' : (period === 'month' ? 'este mês' : 'todo o período');
-
-            container.innerHTML = `
-                <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:15px; text-transform:uppercase; font-weight:700">Resumo de ${periodLabel}</p>
+            const card = document.createElement('div');
+            card.className = 'report-item card';
+            if (isMain) card.style.borderColor = 'var(--primary)';
+            
+            card.innerHTML = `
+                <h3>${title}</h3>
                 <div class="stat-row"><span>Ganhos Brutos</span><span>R$ ${earn.toFixed(2)}</span></div>
                 <div class="stat-row"><span>Gastos Totais</span><span style="color:var(--danger)">R$ ${exp.toFixed(2)}</span></div>
                 <div class="stat-row" style="border-top:1px solid var(--card-border); padding-top:10px; margin-top:10px">
                     <span>LUCRO LÍQUIDO</span><span style="color:var(--success); font-weight:800">R$ ${net.toFixed(2)}</span>
                 </div>
-                <div class="progress-bar" style="margin-top:10px"><div class="progress-fill" style="width:100%; background:var(--success)"></div></div>
-                <div class="stat-row"><span>Distância Percorrida</span><span>${km.toFixed(1)} KM</span></div>
+                <div class="stat-row"><span>Distância</span><span>${km.toFixed(1)} KM</span></div>
                 <div class="stat-row"><span>Média R$/KM</span><span>R$ ${km > 0 ? (earn/km).toFixed(2) : '0,00'}</span></div>
-                <button class="btn-save" style="background:#25d366; margin-top:20px; font-size:0.9rem; padding:12px;" onclick="exportWhatsApp('${period}')">
-                    Compartilhar no WhatsApp
-                </button>
             `;
+            return card;
         }
 
         function loadConfigs() {
@@ -1327,6 +1590,227 @@
                     </div>
                 `;
                 container.appendChild(alert);
+            }
+        }
+
+        function updateDashboardCustos() {
+            const dashCard = document.getElementById('dash-custos-summary');
+            if (!dashCard) return;
+
+            // Custo por KM Total
+            const totalPerKm = state.custosConfig.items.reduce((acc, curr) => acc + curr.valorKm, 0);
+            document.getElementById('dash-custos-km-val').innerText = `R$ ${totalPerKm.toFixed(2)}/KM`;
+
+            // Reservado este mês
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+            const monthlyReserved = state.history
+                .filter(d => d.timestamp >= startOfMonth)
+                .reduce((acc, curr) => acc + (curr.custosReservados || 0), 0);
+            
+            document.getElementById('dash-custos-month-total').innerText = `R$ ${monthlyReserved.toFixed(2)}`;
+
+            // Próximo Vencimento
+            let nextAlert = 'Nenhum marco';
+            let minRemaining = Infinity;
+            
+            state.custosConfig.items.forEach(item => {
+                if (item.marcoKm > 0) {
+                    const remaining = item.marcoKm - state.cofres[item.id].kmAcumulado;
+                    if (remaining < minRemaining) {
+                        minRemaining = remaining;
+                        nextAlert = `${item.name} em ${remaining.toFixed(0)} KM`;
+                    }
+                }
+            });
+            
+            const alertEl = document.getElementById('dash-custos-next-alert');
+            alertEl.innerText = nextAlert;
+            alertEl.style.color = minRemaining < 500 ? 'var(--danger)' : (minRemaining < 1000 ? 'var(--warning)' : 'var(--text-muted)');
+        }
+
+        function switchCustosTab(tab, el) {
+            document.querySelectorAll('.tab-custos-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.custos-subpage').forEach(p => p.style.display = 'none');
+            document.getElementById(`custos-${tab}`).style.display = 'block';
+            if (tab === 'cofres') renderCofres();
+            if (tab === 'history-usos') renderUsosHistory();
+        }
+
+        function renderCustosPage() {
+            renderCofres();
+            updateDashboardCustos();
+        }
+
+        function renderCofres() {
+            const list = document.getElementById('cofres-list');
+            list.innerHTML = '';
+            
+            state.custosConfig.items.forEach(item => {
+                const cofre = state.cofres[item.id];
+                const card = document.createElement('div');
+                
+                let statusClass = '';
+                let progress = 0;
+                let kmInfo = '';
+
+                if (item.marcoKm > 0) {
+                    progress = Math.min(100, (cofre.kmAcumulado / item.marcoKm) * 100);
+                    if (progress >= 100) statusClass = 'danger';
+                    else if (progress >= 85) statusClass = 'warning';
+                    kmInfo = `${cofre.kmAcumulado.toFixed(0)} / ${item.marcoKm} KM`;
+                } else {
+                    kmInfo = `${cofre.kmAcumulado.toFixed(0)} KM acumulados`;
+                }
+
+                card.className = `vault-card card ${statusClass}`;
+                card.innerHTML = `
+                    <div class="vault-header">
+                        <div class="vault-title">
+                            <span class="vault-icon">${item.icon}</span>
+                            <span>${item.name}</span>
+                        </div>
+                        <div class="vault-balance">R$ ${cofre.saldo.toFixed(2)}</div>
+                    </div>
+                    ${item.marcoKm > 0 ? `
+                        <div class="progress-container">
+                            <div class="progress-bar-fill" style="width: ${progress}%"></div>
+                        </div>
+                    ` : ''}
+                    <div class="vault-footer">
+                        <span class="vault-km">${kmInfo}</span>
+                        <button class="btn-reset" onclick="useCofre('${item.id}')">Usar / Zerar</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function loadCustosConfigs() {
+            const list = document.getElementById('config-items-list');
+            const marcosList = document.getElementById('config-marcos-list');
+            list.innerHTML = '';
+            marcosList.innerHTML = '';
+            
+            state.custosConfig.items.forEach(item => {
+                // Inputs de Valor
+                const div = document.createElement('div');
+                div.className = 'config-item';
+                div.innerHTML = `
+                    <label>${item.name} (R$/KM)</label>
+                    <input type="number" step="0.01" value="${item.valorKm.toFixed(2)}" oninput="updateConfigTotal()" data-id="${item.id}" class="config-valor-input">
+                `;
+                list.appendChild(div);
+
+                // Inputs de Marco
+                if (item.id !== 'depreciacao' && item.id !== 'reserva') {
+                    const divM = document.createElement('div');
+                    divM.className = 'config-item';
+                    divM.innerHTML = `
+                        <label>${item.name} (KM)</label>
+                        <input type="number" value="${item.marcoKm}" data-id="${item.id}" class="config-marco-input">
+                    `;
+                    marcosList.appendChild(divM);
+                }
+            });
+            updateConfigTotal();
+        }
+
+        function updateConfigTotal() {
+            let total = 0;
+            document.querySelectorAll('.config-valor-input').forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            document.getElementById('config-total-km').innerText = `R$ ${total.toFixed(2)}`;
+        }
+
+        function saveCustosConfigs() {
+            document.querySelectorAll('.config-valor-input').forEach(input => {
+                const id = input.getAttribute('data-id');
+                const item = state.custosConfig.items.find(i => i.id === id);
+                if (item) item.valorKm = parseFloat(input.value) || 0;
+            });
+
+            document.querySelectorAll('.config-marco-input').forEach(input => {
+                const id = input.getAttribute('data-id');
+                const item = state.custosConfig.items.find(i => i.id === id);
+                if (item) item.marcoKm = parseInt(input.value) || 0;
+            });
+
+            saveAndSync();
+            alert('Configurações de custos salvas!');
+            renderCofres();
+            updateDashboardCustos();
+        }
+
+        function restoreCustosDefaults() {
+            if (confirm('Restaurar valores padrão?')) {
+                state.custosConfig = {
+                    items: [
+                        { id: 'manutencao', name: 'Manutenção', valorKm: 0.15, marcoKm: 10000, icon: '🔧' },
+                        { id: 'pneus', name: 'Pneus', valorKm: 0.08, marcoKm: 40000, icon: '🛞' },
+                        { id: 'oleo', name: 'Óleo', valorKm: 0.03, marcoKm: 5000, icon: '🛢️' },
+                        { id: 'depreciacao', name: 'Depreciação', valorKm: 0.20, marcoKm: 0, icon: '📉' },
+                        { id: 'reserva', name: 'Reserva Emergência', valorKm: 0.05, marcoKm: 0, icon: '🆘' }
+                    ]
+                };
+                loadCustosConfigs();
+                saveAndSync();
+            }
+        }
+
+        function useCofre(id) {
+            const item = state.custosConfig.items.find(i => i.id === id);
+            const cofre = state.cofres[id];
+            
+            if (confirm(`Você usou o valor de ${item.name}?\n\nSaldo: R$ ${cofre.saldo.toFixed(2)}\nKM Acumulado: ${cofre.kmAcumulado.toFixed(0)}\n\nIsso zerará o saldo acumulado.`)) {
+                state.historicoUsos.unshift({
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString('pt-BR'),
+                    item: item.name,
+                    valor: cofre.saldo,
+                    km: cofre.kmAcumulado
+                });
+                
+                cofre.saldo = 0;
+                cofre.kmAcumulado = 0;
+                
+                saveAndSync();
+                renderCofres();
+                updateDashboardCustos();
+            }
+        }
+
+        function renderUsosHistory() {
+            const list = document.getElementById('usos-history-list');
+            list.innerHTML = state.historicoUsos.length === 0 ? '<p style="text-align:center; padding:20px; color:var(--text-muted)">Nenhum uso registrado.</p>' : '';
+            
+            state.historicoUsos.forEach((u, idx) => {
+                const item = document.createElement('div');
+                item.className = 'history-item card';
+                item.style.borderLeftColor = 'var(--danger)';
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <div>
+                            <strong style="display:block">${u.item}</strong>
+                            <small>${u.date} • ${u.km.toFixed(0)} KM</small>
+                        </div>
+                        <div style="text-align:right">
+                            <div style="font-weight:800; color:var(--danger)">- R$ ${u.valor.toFixed(2)}</div>
+                            <button class="btn-edit-small" style="color:var(--text-muted); border-color:var(--card-border)" onclick="deleteUso(${idx})">Excluir</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function deleteUso(idx) {
+            if (confirm('Excluir este registro de uso?')) {
+                state.historicoUsos.splice(idx, 1);
+                saveAndSync();
+                renderUsosHistory();
             }
         }
 
