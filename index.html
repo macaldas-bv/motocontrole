@@ -581,6 +581,24 @@
                 </div>
             </div>
 
+            <!-- BUSCA NO HISTÓRICO -->
+            <div class="card" style="padding: 20px; margin-bottom: 24px; border-style: dashed; border-color: var(--card-border);">
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label>Buscar por Data</label>
+                    <input type="date" id="search-date" oninput="renderHistory()">
+                </div>
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label>Filtrar por plataforma ou gasto</label>
+                    <input type="text" id="search-text" placeholder="Ex: Uber, Manutenção..." oninput="renderHistory()">
+                </div>
+                <div id="filter-active-msg" style="display: none; font-size: 0.65rem; color: var(--warning); font-weight: 800; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.05em;">
+                    ⚠️ Filtros Ativos
+                </div>
+                <div style="text-align: right; margin-top: 10px;">
+                    <button class="btn-edit-small" style="border: none; background: none; color: var(--text-muted); padding: 0;" onclick="clearHistoryFilters()">Limpar Filtros</button>
+                </div>
+            </div>
+
             <div id="history-list" class="scroll-list"></div>
         </div>
 
@@ -1088,16 +1106,34 @@
             const container = document.getElementById('history-list');
             const fuelDisplay = document.getElementById('total-fuel-value');
             const kmDisplay = document.getElementById('total-km-value');
-            container.innerHTML = state.history.length === 0 ? '<p style="text-align:center; padding:20px">Nada por aqui.</p>' : '';
+            
+            const searchDate = document.getElementById('search-date').value;
+            const searchText = document.getElementById('search-text').value.toLowerCase();
+            const filterActiveMsg = document.getElementById('filter-active-msg');
+            
+            let filteredHistory = state.history;
+            
+            if (searchDate) {
+                const [y, m, d] = searchDate.split('-');
+                const formattedDate = `${d}/${m}/${y}`;
+                filteredHistory = filteredHistory.filter(day => day.date === formattedDate);
+            }
+            
+            if (searchText) {
+                filteredHistory = filteredHistory.filter(day => {
+                    const inEarnings = day.earnings.some(e => e.platform.toLowerCase().includes(searchText));
+                    const inExpenses = day.expenses.some(e => e.type.toLowerCase().includes(searchText));
+                    return inEarnings || inExpenses;
+                });
+            }
+            
+            filterActiveMsg.style.display = (searchDate || searchText) ? 'block' : 'none';
+            container.innerHTML = filteredHistory.length === 0 ? '<p style="text-align:center; padding:20px">Nenhum registro encontrado.</p>' : '';
             
             let totalFuel = 0;
             let totalKm = 0;
 
-            state.currentDay.expenses.forEach(e => {
-                if (e.type === 'Combustível') totalFuel += e.value;
-            });
-
-            state.history.forEach((day, index) => {
+            filteredHistory.forEach((day) => {
                 totalKm += day.kmRodados || 0;
                 if (day.expenses) {
                     day.expenses.forEach(e => {
@@ -1105,6 +1141,7 @@
                     });
                 }
 
+                const originalIndex = state.history.indexOf(day);
                 const item = document.createElement('div');
                 item.className = 'history-item card';
                 item.innerHTML = `
@@ -1116,14 +1153,20 @@
                         </div>
                         <div style="text-align: right">
                             <div style="color:${day.net>=0?'var(--success)':'var(--danger)'}; font-weight:800">R$ ${day.net.toFixed(2)}</div>
-                            <button class="btn-edit-small" onclick="openEditHistory(${index})">Editar</button>
+                            <button class="btn-edit-small" onclick="openEditHistory(${originalIndex})">Editar</button>
                         </div>
                     </div>`;
                 container.appendChild(item);
             });
 
             fuelDisplay.innerText = `R$ ${totalFuel.toFixed(2)}`;
-            kmDisplay.innerText = `Distância Total: ${totalKm.toFixed(1)} KM`;
+            kmDisplay.innerText = `Distância: ${totalKm.toFixed(1)} KM`;
+        }
+
+        function clearHistoryFilters() {
+            document.getElementById('search-date').value = '';
+            document.getElementById('search-text').value = '';
+            renderHistory();
         }
 
         function openEditHistory(index) {
@@ -1198,7 +1241,7 @@
             const now = new Date();
             
             if (period === 'week') {
-                // Relatório por semanas do mês atual
+                // Relatório por semanas reais (Domingo a Sábado)
                 const currentMonth = now.getMonth();
                 const currentYear = now.getFullYear();
                 
@@ -1212,26 +1255,40 @@
                     return;
                 }
 
-                // Agrupar por semana (1-7, 8-14, 15-21, 22+)
-                const weeks = [
-                    { name: 'Semana 1 (Dias 01-07)', data: [] },
-                    { name: 'Semana 2 (Dias 08-14)', data: [] },
-                    { name: 'Semana 3 (Dias 15-21)', data: [] },
-                    { name: 'Semana 4+ (Dias 22+)', data: [] }
-                ];
-
+                // Agrupar por semanas reais
+                const weeksMap = {};
+                
                 monthData.forEach(d => {
-                    const day = new Date(d.timestamp).getDate();
-                    if (day <= 7) weeks[0].data.push(d);
-                    else if (day <= 14) weeks[1].data.push(d);
-                    else if (day <= 21) weeks[2].data.push(d);
-                    else weeks[3].data.push(d);
+                    const date = new Date(d.timestamp);
+                    const dayOfWeek = date.getDay();
+                    
+                    // Encontrar o domingo daquela semana
+                    const sunday = new Date(date);
+                    sunday.setDate(date.getDate() - dayOfWeek);
+                    sunday.setHours(0,0,0,0);
+                    
+                    // Encontrar o sábado daquela semana
+                    const saturday = new Date(sunday);
+                    saturday.setDate(sunday.getDate() + 6);
+                    saturday.setHours(23,59,59,999);
+                    
+                    const weekKey = sunday.getTime();
+                    if (!weeksMap[weekKey]) {
+                        const startStr = sunday.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                        const endStr = saturday.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                        weeksMap[weekKey] = {
+                            name: `Semana ${startStr} a ${endStr}`,
+                            data: [],
+                            timestamp: weekKey
+                        };
+                    }
+                    weeksMap[weekKey].data.push(d);
                 });
 
-                weeks.reverse().forEach(w => {
-                    if (w.data.length > 0) {
-                        container.appendChild(createReportCard(w.name, w.data));
-                    }
+                // Ordenar semanas (mais recente primeiro) e renderizar
+                const sortedWeeks = Object.values(weeksMap).sort((a, b) => b.timestamp - a.timestamp);
+                sortedWeeks.forEach(w => {
+                    container.appendChild(createReportCard(w.name, w.data));
                 });
 
             } else if (period === 'month') {
