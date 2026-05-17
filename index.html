@@ -1198,7 +1198,7 @@
             const now = new Date();
             
             if (period === 'week') {
-                // Relatório por semanas reais (Domingo a Sábado)
+                // Relatório por semanas reais (Segunda a Domingo)
                 const currentMonth = now.getMonth();
                 const currentYear = now.getFullYear();
                 
@@ -1217,22 +1217,24 @@
                 
                 monthData.forEach(d => {
                     const date = new Date(d.timestamp);
-                    const dayOfWeek = date.getDay();
+                    let dayOfWeek = date.getDay();
+                    // Ajustar para segunda-feira ser 0 e domingo ser 6
+                    const adjustedDayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                    
+                    // Encontrar a segunda-feira daquela semana
+                    const monday = new Date(date);
+                    monday.setDate(date.getDate() - adjustedDayOfWeek);
+                    monday.setHours(0,0,0,0);
                     
                     // Encontrar o domingo daquela semana
-                    const sunday = new Date(date);
-                    sunday.setDate(date.getDate() - dayOfWeek);
-                    sunday.setHours(0,0,0,0);
+                    const sundayEnd = new Date(monday);
+                    sundayEnd.setDate(monday.getDate() + 6);
+                    sundayEnd.setHours(23,59,59,999);
                     
-                    // Encontrar o sábado daquela semana
-                    const saturday = new Date(sunday);
-                    saturday.setDate(sunday.getDate() + 6);
-                    saturday.setHours(23,59,59,999);
-                    
-                    const weekKey = sunday.getTime();
+                    const weekKey = monday.getTime();
                     if (!weeksMap[weekKey]) {
-                        const startStr = sunday.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-                        const endStr = saturday.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                        const startStr = monday.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                        const endStr = sundayEnd.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                         weeksMap[weekKey] = {
                             name: `Semana ${startStr} a ${endStr}`,
                             data: [],
@@ -1342,7 +1344,9 @@
                 const itemDate = new Date(d.timestamp);
                 if (period === 'week') {
                     const startOfWeek = new Date(now);
-                    startOfWeek.setDate(now.getDate() - now.getDay());
+                    let dayOfWeek = now.getDay();
+                    const adjustedDayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                    startOfWeek.setDate(now.getDate() - adjustedDayOfWeek);
                     startOfWeek.setHours(0,0,0,0);
                     return itemDate >= startOfWeek;
                 }
