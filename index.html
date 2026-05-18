@@ -320,13 +320,13 @@
         }
         .chart-bar-wrapper { flex: 1; min-width: 40px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .chart-bar { width: 100%; border-top-left-radius: 4px; border-top-right-radius: 4px; transition: height 0.5s; position: relative; }
-        .bar-val { font-size: 0.6rem; font-weight: 800; color: var(--text-main); }
-        .bar-label { font-size: 0.5rem; color: var(--text-muted); white-space: nowrap; }
+        .bar-val { font-size: 0.8rem; font-weight: 800; color: var(--text-main); }
+        .bar-label { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; }
         
         .fuel-list-item { padding: 18px; margin-bottom: 8px; }
         .fuel-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .fuel-list-details { display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 0.7rem; color: var(--text-muted); gap: 5px; }
-        .km-l-badge { padding: 3px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 800; }
+        .fuel-list-details { display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 0.9rem; color: var(--text-muted); gap: 5px; }
+        .km-l-badge { padding: 3px 8px; border-radius: 10px; font-size: 0.9rem; font-weight: 800; }
         .km-l-good { background: rgba(16, 185, 129, 0.2); color: var(--success); }
         .km-l-bad { background: rgba(244, 63, 94, 0.2); color: var(--danger); }
         
@@ -1495,12 +1495,12 @@
                 item.innerHTML = `
                     <div class="fuel-list-header">
                         <div>
-                            <strong style="font-size:0.9rem">${new Date(f.date + 'T00:00:00').toLocaleDateString('pt-BR')}</strong>
-                            ${f.station ? `<br><small style="color:var(--text-muted)">${f.station}</small>` : ''}
+                            <strong style="font-size:1.1rem">${new Date(f.date + 'T00:00:00').toLocaleDateString('pt-BR')}</strong>
+                            ${f.station ? `<br><small style="color:var(--text-muted); font-size:0.85rem">${f.station}</small>` : ''}
                         </div>
                         <div style="text-align:right">
                             ${kmlTag}
-                            <div style="font-size:0.8rem; font-weight:800; margin-top:4px">R$ ${f.value.toFixed(2)}</div>
+                            <div style="font-size:1.0rem; font-weight:800; margin-top:4px">R$ ${f.value.toFixed(2)}</div>
                         </div>
                     </div>
                     <div class="fuel-list-details">
