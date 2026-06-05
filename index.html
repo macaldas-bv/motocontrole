@@ -852,79 +852,7 @@
         const currentPlatform = { type: '' };
 
         function checkMonthTurn(shouldSave = true) {
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
-            let changed = false;
-
-            if (state.history && state.history.length > 0) {
-                const originalLength = state.history.length;
-                
-                state.history = state.history.filter(entry => {
-                    let entryDate = null;
-                    if (entry.timestamp) {
-                        const parsedTs = Number(entry.timestamp);
-                        if (!isNaN(parsedTs)) {
-                            entryDate = new Date(parsedTs);
-                        }
-                    }
-                    // Fallback robusto usando a string de data (ex: "31/05/2026" ou "31/5/2026")
-                    if ((!entryDate || isNaN(entryDate.getTime())) && entry.date) {
-                        const parts = entry.date.split('/');
-                        if (parts.length === 3) {
-                            const d = parseInt(parts[0], 10);
-                            const m = parseInt(parts[1], 10) - 1;
-                            const y = parseInt(parts[2], 10);
-                            if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
-                                entryDate = new Date(y, m, d);
-                            }
-                        }
-                    }
-                    
-                    if (entryDate && !isNaN(entryDate.getTime())) {
-                        return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
-                    }
-                    // Se não for possível determinar a data por algum motivo, mantemos o registro por segurança
-                    return true;
-                });
-                
-                if (state.history.length !== originalLength) {
-                    changed = true;
-                }
-            }
-
-            if (state.fuelings && state.fuelings.length > 0) {
-                const originalFuelLength = state.fuelings.length;
-                
-                state.fuelings = state.fuelings.filter(entry => {
-                    let entryDate = null;
-                    if (entry.date) {
-                        // Formato YYYY-MM-DD
-                        const parts = entry.date.split('-');
-                        if (parts.length === 3) {
-                            const y = parseInt(parts[0], 10);
-                            const m = parseInt(parts[1], 10) - 1;
-                            const d = parseInt(parts[2], 10);
-                            if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
-                                entryDate = new Date(y, m, d);
-                            }
-                        }
-                    }
-                    
-                    if (entryDate && !isNaN(entryDate.getTime())) {
-                        return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
-                    }
-                    return true;
-                });
-                
-                if (state.fuelings.length !== originalFuelLength) {
-                    changed = true;
-                }
-            }
-
-            if (changed && shouldSave) {
-                saveAndSync();
-            }
+            // Não deletamos mais os registros fisicamente para manter o Relatório Total com todos os meses
         }
 
         function init() {
@@ -1171,7 +1099,31 @@
             const container = document.getElementById('history-list');
             const fuelDisplay = document.getElementById('total-fuel-value');
             const kmDisplay = document.getElementById('total-km-value');
-            container.innerHTML = state.history.length === 0 ? '<p style="text-align:center; padding:20px">Nada por aqui.</p>' : '';
+            
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            // Filtrar para ver se há itens do mês atual para exibir a mensagem "Nada por aqui" apropriadamente
+            const currentMonthHistory = state.history.filter(day => {
+                let dateObj = null;
+                if (day.timestamp) {
+                    dateObj = new Date(day.timestamp);
+                } else if (day.date) {
+                    const parts = day.date.split('/');
+                    if (parts.length === 3) {
+                        const d = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10) - 1;
+                        const y = parseInt(parts[2], 10);
+                        if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                            dateObj = new Date(y, m, d);
+                        }
+                    }
+                }
+                return dateObj && !isNaN(dateObj.getTime()) && dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear;
+            });
+
+            container.innerHTML = currentMonthHistory.length === 0 ? '<p style="text-align:center; padding:20px">Nada por aqui.</p>' : '';
             
             let totalFuel = 0;
             let totalKm = 0;
@@ -1180,7 +1132,27 @@
                 if (e.type === 'Combustível') totalFuel += e.value;
             });
 
-            state.history.forEach((day, index) => {
+            state.history.forEach((day, originalIndex) => {
+                let dateObj = null;
+                if (day.timestamp) {
+                    dateObj = new Date(day.timestamp);
+                } else if (day.date) {
+                    const parts = day.date.split('/');
+                    if (parts.length === 3) {
+                        const d = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10) - 1;
+                        const y = parseInt(parts[2], 10);
+                        if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                            dateObj = new Date(y, m, d);
+                        }
+                    }
+                }
+                
+                // Se não for do mês atual, não renderiza e não acumula nas estatísticas da aba Histórico
+                if (!dateObj || isNaN(dateObj.getTime()) || dateObj.getMonth() !== currentMonth || dateObj.getFullYear() !== currentYear) {
+                    return;
+                }
+
                 totalKm += day.kmRodados || 0;
                 if (day.expenses) {
                     day.expenses.forEach(e => {
@@ -1199,7 +1171,7 @@
                         </div>
                         <div style="text-align: right">
                             <div style="color:${day.net>=0?'var(--success)':'var(--danger)'}; font-weight:800">R$ ${day.net.toFixed(2)}</div>
-                            <button class="btn-edit-small" onclick="openEditHistory(${index})">Editar</button>
+                            <button class="btn-edit-small" onclick="openEditHistory(${originalIndex})">Editar</button>
                         </div>
                     </div>`;
                 container.appendChild(item);
@@ -1532,8 +1504,11 @@
             const list = document.getElementById('fuel-list');
             list.innerHTML = '';
             
-            // Cálculos de KM/L Real
-            // Ordenar por KM para garantir cálculo correto
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            // Cálculos de KM/L Real (permanece sobre todo o histórico para permitir o cálculo correto do primeiro tanque do mês atual baseado no último do mês passado)
             const sorted = [...state.fuelings].sort((a, b) => a.km - b.km);
             
             sorted.forEach((f, i) => {
@@ -1554,12 +1529,17 @@
                 }
             });
 
-            // Estatísticas
+            // Estatísticas - Apenas para o mês atual
             let totalSpent = 0, totalLiters = 0, totalKmWithFuel = 0;
             let best = 0, worst = 999, sumKmL = 0, countKmL = 0;
             let last3KmL = [];
 
             state.fuelings.forEach(f => {
+                const fDate = new Date(f.date + 'T00:00:00');
+                if (fDate.getMonth() !== currentMonth || fDate.getFullYear() !== currentYear) {
+                    return; // Ignora se não for do mês atual
+                }
+
                 totalSpent += f.value;
                 totalLiters += f.liters;
                 const match = sorted.find(s => s.id === f.id);
@@ -1578,9 +1558,13 @@
             const avgKmL = countKmL > 0 ? sumKmL / countKmL : 0;
             const trend = last3KmL.length > 0 ? last3KmL.reduce((a, b) => a + b, 0) / last3KmL.length : 0;
 
-            // Encontrar total KM rodados desde o primeiro abastecimento
-            if (sorted.length > 1) {
-                totalKmWithFuel = sorted[sorted.length - 1].km - sorted[0].km;
+            // Encontrar total KM rodados desde o primeiro abastecimento do mês atual
+            const currentMonthFuelings = sorted.filter(f => {
+                const fDate = new Date(f.date + 'T00:00:00');
+                return fDate.getMonth() === currentMonth && fDate.getFullYear() === currentYear;
+            });
+            if (currentMonthFuelings.length > 1) {
+                totalKmWithFuel = currentMonthFuelings[currentMonthFuelings.length - 1].km - currentMonthFuelings[0].km;
             }
 
             document.getElementById('fuel-avg-total').innerText = avgKmL.toFixed(2);
@@ -1590,11 +1574,20 @@
             document.getElementById('fuel-avg-cost-km').innerText = `R$ ${totalKmWithFuel > 0 ? (totalSpent / totalKmWithFuel).toFixed(2) : '0,00'}`;
             document.getElementById('fuel-trend-val').innerText = `${trend.toFixed(2)} KM/L`;
 
-            // Gráfico
-            renderFuelChart(state.fuelings.slice(0, 10), avgKmL);
+            // Gráfico - Exibe os últimos 10 do mês atual
+            const currentMonthFuelingsList = state.fuelings.filter(f => {
+                const fDate = new Date(f.date + 'T00:00:00');
+                return fDate.getMonth() === currentMonth && fDate.getFullYear() === currentYear;
+            });
+            renderFuelChart(currentMonthFuelingsList.slice(0, 10), avgKmL);
 
-            // Lista
+            // Lista - Apenas o mês atual
             state.fuelings.forEach((f, idx) => {
+                const fDate = new Date(f.date + 'T00:00:00');
+                if (fDate.getMonth() !== currentMonth || fDate.getFullYear() !== currentYear) {
+                    return; // Ignora se não for do mês atual
+                }
+
                 const item = document.createElement('div');
                 item.className = 'fuel-list-item card';
                 
