@@ -853,15 +853,42 @@
 
         function checkMonthTurn(shouldSave = true) {
             if (state.history && state.history.length > 0) {
-                const latestEntry = state.history[0];
-                if (latestEntry.timestamp) {
-                    const latestDate = new Date(latestEntry.timestamp);
-                    const now = new Date();
-                    if (latestDate.getMonth() !== now.getMonth() || latestDate.getFullYear() !== now.getFullYear()) {
-                        state.history = [];
-                        if (shouldSave) {
-                            saveAndSync();
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                const originalLength = state.history.length;
+                
+                state.history = state.history.filter(entry => {
+                    let entryDate = null;
+                    if (entry.timestamp) {
+                        const parsedTs = Number(entry.timestamp);
+                        if (!isNaN(parsedTs)) {
+                            entryDate = new Date(parsedTs);
                         }
+                    }
+                    // Fallback robusto usando a string de data (ex: "31/05/2026" ou "31/5/2026")
+                    if ((!entryDate || isNaN(entryDate.getTime())) && entry.date) {
+                        const parts = entry.date.split('/');
+                        if (parts.length === 3) {
+                            const d = parseInt(parts[0], 10);
+                            const m = parseInt(parts[1], 10) - 1;
+                            const y = parseInt(parts[2], 10);
+                            if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                                entryDate = new Date(y, m, d);
+                            }
+                        }
+                    }
+                    
+                    if (entryDate && !isNaN(entryDate.getTime())) {
+                        return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
+                    }
+                    // Se não for possível determinar a data por algum motivo, mantemos o registro por segurança
+                    return true;
+                });
+                
+                if (state.history.length !== originalLength) {
+                    if (shouldSave) {
+                        saveAndSync();
                     }
                 }
             }
