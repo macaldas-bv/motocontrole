@@ -10,6 +10,7 @@
     <link rel="icon" type="image/jpeg" href="logo.jpeg">
     <link rel="apple-touch-icon" href="logo.jpeg">
     <title>ModoControle - Gestão de Ganhos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --bg-color: #000000;
@@ -594,6 +595,7 @@
                 <button class="tab-btn" onclick="changeReportTab('month', this)">Mês</button>
                 <button class="tab-btn" onclick="changeReportTab('total', this)">Total</button>
             </div>
+            <button id="btn-export-jpg" class="btn-save" style="background: #1f2937; margin-bottom: 20px; font-size: 0.9rem; padding: 12px; color: white;" onclick="exportJPGFromView()">⬇️ Baixar Relatório em JPG</button>
             <div id="report-content" style="padding: 0;"></div>
         </div>
 
@@ -618,7 +620,7 @@
                 </div>
                 <button class="btn-save" onclick="saveConfig(true)" style="margin-top: 10px;">Salvar Ajustes</button>
             </div>
-            <button class="btn-save" style="background: var(--success);" onclick="exportWhatsApp()">Gerar Relatório WhatsApp</button>
+            <button class="btn-save" style="background: var(--primary);" onclick="exportJPG()">Salvar Relatório como JPG</button>
             <button class="btn-save" style="background: var(--danger); margin-top: 20px;" onclick="clearAllData()">Limpar Tudo</button>
         </div>
 
@@ -849,6 +851,22 @@
 
         const currentPlatform = { type: '' };
 
+        function checkMonthTurn(shouldSave = true) {
+            if (state.history && state.history.length > 0) {
+                const latestEntry = state.history[0];
+                if (latestEntry.timestamp) {
+                    const latestDate = new Date(latestEntry.timestamp);
+                    const now = new Date();
+                    if (latestDate.getMonth() !== now.getMonth() || latestDate.getFullYear() !== now.getFullYear()) {
+                        state.history = [];
+                        if (shouldSave) {
+                            saveAndSync();
+                        }
+                    }
+                }
+            }
+        }
+
         function init() {
             const keys = ['modoControleData', 'motoControleData'];
             let saved = null;
@@ -885,6 +903,8 @@
             if (savedCustosConfig) try { state.custosConfig = JSON.parse(savedCustosConfig); } catch(e){}
             if (savedCofres) try { state.cofres = JSON.parse(savedCofres); } catch(e){}
             if (savedHistoricoUsos) try { state.historicoUsos = JSON.parse(savedHistoricoUsos); } catch(e){}
+            
+            checkMonthTurn(true);
             
             updateDate();
             renderAll();
@@ -1042,6 +1062,9 @@
         function endDay() {
             const start = state.currentDay.kmStart, end = state.currentDay.kmEnd;
             if (!start || !end || end < start) return alert('Informe a KM corretamente!');
+            
+            checkMonthTurn(false);
+            
             const totalEarn = state.currentDay.earnings.reduce((a, b) => a + b.value, 0);
             const totalExp = state.currentDay.expenses.reduce((a, b) => a + b.value, 0);
             const km = end - start;
@@ -1290,12 +1313,13 @@
         }
 
         function createReportCard(title, data, isMain = false) {
-            let km = 0, earn = 0, exp = 0, net = 0;
+            let km = 0, earn = 0, exp = 0, net = 0, custos = 0;
             data.forEach(d => {
                 km += d.kmRodados;
                 earn += d.totalEarn;
                 exp += d.totalExp || 0;
                 net += d.net;
+                custos += d.custosReservados || 0;
             });
 
             const card = document.createElement('div');
@@ -1306,6 +1330,7 @@
                 <h3>${title}</h3>
                 <div class="stat-row"><span>Ganhos Brutos</span><span>R$ ${earn.toFixed(2)}</span></div>
                 <div class="stat-row"><span>Gastos Totais</span><span style="color:var(--danger)">R$ ${exp.toFixed(2)}</span></div>
+                <div class="stat-row"><span>Custos do Veículo</span><span style="color:var(--warning)">R$ ${custos.toFixed(2)}</span></div>
                 <div class="stat-row" style="border-top:1px solid var(--card-border); padding-top:10px; margin-top:10px">
                     <span>LUCRO LÍQUIDO</span><span style="color:var(--success); font-weight:800">R$ ${net.toFixed(2)}</span>
                 </div>
@@ -1338,47 +1363,75 @@
             if (showFeedback) alert('Ajustes salvos com sucesso!');
         }
 
-        function exportWhatsApp(period = 'month') {
-            const now = new Date();
-            const filtered = state.history.filter(d => {
-                const itemDate = new Date(d.timestamp);
-                if (period === 'week') {
-                    const startOfWeek = new Date(now);
-                    let dayOfWeek = now.getDay();
-                    const adjustedDayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-                    startOfWeek.setDate(now.getDate() - adjustedDayOfWeek);
-                    startOfWeek.setHours(0,0,0,0);
-                    return itemDate >= startOfWeek;
-                }
-                if (period === 'month') {
-                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                    return itemDate >= startOfMonth;
-                }
-                return true;
-            });
+        function exportJPG() {
+            if (!document.getElementById('page-report').classList.contains('active')) {
+                switchPage('report', document.querySelectorAll('.nav-item')[4]);
+            }
+            setTimeout(() => {
+                exportJPGFromView();
+            }, 300);
+        }
 
-            if (filtered.length === 0) return alert('Sem dados para enviar!');
+        function exportJPGFromView() {
+            const container = document.getElementById('report-content');
+            if (container.innerText.includes('Sem dados') || container.innerHTML.trim() === '') {
+                return alert('Sem dados para exportar!');
+            }
 
-            let km = 0, earn = 0, exp = 0, net = 0;
-            filtered.forEach(d => {
-                km += d.kmRodados;
-                earn += d.totalEarn;
-                exp += d.totalExp || 0;
-                net += d.net;
-            });
-
-            const label = period === 'week' ? 'Semana Atual' : (period === 'month' ? 'Mês Atual' : 'Histórico Total');
+            const period = document.querySelector('.report-tabs .active').innerText;
             
-            const message = `📊 *MODOCONTROLE - RELATÓRIO*\n` +
-                `📅 Período: *${label}*\n\n` +
-                `💰 Ganhos Brutos: *R$ ${earn.toFixed(2)}*\n` +
-                `📉 Gastos Totais: *R$ ${exp.toFixed(2)}*\n` +
-                `✅ *LUCRO LÍQUIDO: R$ ${net.toFixed(2)}*\n\n` +
-                `🛣️ Distância: ${km.toFixed(1)} KM\n` +
-                `⛽ Média: R$ ${(km > 0 ? earn/km : 0).toFixed(2)}/KM\n\n` +
-                `_Gerado por ModoControle_`;
+            // Create title
+            const title = document.createElement('div');
+            title.id = 'temp-export-title';
+            title.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px; padding: 20px; background: #000;">
+                    <img src="logo.jpeg" style="width: 120px; margin-bottom: 10px; border-radius: 12px;">
+                    <h2 style="font-size: 1.2rem; color: #f9fafb; margin: 0;">Relatório de Ganhos</h2>
+                    <p style="color: #9ca3af; font-size: 0.9rem; margin-top: 5px;">Período: ${period}</p>
+                </div>
+            `;
+            container.insertBefore(title, container.firstChild);
+            
+            // Create footer
+            const footer = document.createElement('div');
+            footer.id = 'temp-export-footer';
+            footer.innerHTML = `
+                <div style="text-align: center; margin-top: 20px; padding: 20px; font-size: 0.75rem; color: #9ca3af; background: #000;">
+                    Gerado por ModoControle
+                </div>
+            `;
+            container.appendChild(footer);
 
-            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+            const originalBg = container.style.background;
+            container.style.background = '#000000';
+
+            const btn = document.getElementById('btn-export-jpg');
+            if(btn) btn.innerHTML = '⏳ Gerando JPG...';
+
+            setTimeout(() => {
+                html2canvas(container, {
+                    backgroundColor: '#000000',
+                    scale: 2,
+                    useCORS: true
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `Relatorio-ModoControle-${period}.jpg`;
+                    link.href = canvas.toDataURL('image/jpeg', 0.9);
+                    link.click();
+                    
+                    title.remove();
+                    footer.remove();
+                    container.style.background = originalBg;
+                    if(btn) btn.innerHTML = '⬇️ Baixar Relatório em JPG';
+                }).catch(err => {
+                    console.error('Erro ao gerar JPG', err);
+                    alert('Erro ao gerar imagem.');
+                    title.remove();
+                    footer.remove();
+                    container.style.background = originalBg;
+                    if(btn) btn.innerHTML = '⬇️ Baixar Relatório em JPG';
+                });
+            }, 300);
         }
 
         function calcPricePerLiter() {
