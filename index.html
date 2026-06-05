@@ -1359,14 +1359,60 @@
         }
 
         function createReportCard(title, data, isMain = false) {
-            let km = 0, earn = 0, exp = 0, net = 0, custos = 0;
+            let km = 0, earn = 0, custos = 0;
+            
+            // Obter conjunto de datas do relatório no formato YYYY-MM-DD
+            const reportDates = new Set();
             data.forEach(d => {
                 km += d.kmRodados;
                 earn += d.totalEarn;
-                exp += d.totalExp || 0;
-                net += d.net;
                 custos += d.custosReservados || 0;
+
+                const dateObj = new Date(d.timestamp);
+                const y = dateObj.getFullYear();
+                const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                reportDates.add(`${y}-${m}-${day}`);
             });
+
+            // Somar abastecimentos reais do período
+            let fuelSpent = 0;
+            state.fuelings.forEach(f => {
+                if (reportDates.has(f.date)) {
+                    fuelSpent += f.value;
+                }
+            });
+
+            // Somar despesas manuais do histórico (excluindo tipo "Combustível" para evitar duplicar se houver abastecimento)
+            let otherExp = 0;
+            data.forEach(d => {
+                if (d.expenses && d.expenses.length > 0) {
+                    d.expenses.forEach(e => {
+                        if (e.type !== 'Combustível') {
+                            otherExp += e.value;
+                        } else {
+                            // Se for combustível manual e NÃO houver abastecimento registrado nesse dia,
+                            // podemos somá-lo para não perder o gasto manual de combustível
+                            const dateObj = new Date(d.timestamp);
+                            const y = dateObj.getFullYear();
+                            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            const dateStr = `${y}-${m}-${day}`;
+                            
+                            const hasFuelingOnDay = state.fuelings.some(f => f.date === dateStr);
+                            if (!hasFuelingOnDay) {
+                                fuelSpent += e.value;
+                            }
+                        }
+                    });
+                } else if (!d.expenses) {
+                    // Registros antigos sem detalhamento de despesas: usamos o total
+                    otherExp += d.totalExp || 0;
+                }
+            });
+
+            const totalExp = otherExp + fuelSpent;
+            const net = earn - totalExp;
 
             const card = document.createElement('div');
             card.className = 'report-item card';
@@ -1375,7 +1421,13 @@
             card.innerHTML = `
                 <h3>${title}</h3>
                 <div class="stat-row"><span>Ganhos Brutos</span><span>R$ ${earn.toFixed(2)}</span></div>
-                <div class="stat-row"><span>Gastos Totais</span><span style="color:var(--danger)">R$ ${exp.toFixed(2)}</span></div>
+                <div class="stat-row"><span>Gastos Totais</span><span style="color:var(--danger)">R$ ${totalExp.toFixed(2)}</span></div>
+                <div class="stat-row" style="padding-left: 15px; font-size: 0.8rem; color: var(--text-muted);">
+                    <span>• Combustível</span><span>R$ ${fuelSpent.toFixed(2)}</span>
+                </div>
+                <div class="stat-row" style="padding-left: 15px; font-size: 0.8rem; color: var(--text-muted);">
+                    <span>• Outros Gastos</span><span>R$ ${otherExp.toFixed(2)}</span>
+                </div>
                 <div class="stat-row"><span>Custos do Veículo</span><span style="color:var(--warning)">R$ ${custos.toFixed(2)}</span></div>
                 <div class="stat-row" style="border-top:1px solid var(--card-border); padding-top:10px; margin-top:10px">
                     <span>LUCRO LÍQUIDO</span><span style="color:var(--success); font-weight:800">R$ ${net.toFixed(2)}</span>
