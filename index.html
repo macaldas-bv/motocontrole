@@ -852,10 +852,12 @@
         const currentPlatform = { type: '' };
 
         function checkMonthTurn(shouldSave = true) {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            let changed = false;
+
             if (state.history && state.history.length > 0) {
-                const now = new Date();
-                const currentMonth = now.getMonth();
-                const currentYear = now.getFullYear();
                 const originalLength = state.history.length;
                 
                 state.history = state.history.filter(entry => {
@@ -887,10 +889,41 @@
                 });
                 
                 if (state.history.length !== originalLength) {
-                    if (shouldSave) {
-                        saveAndSync();
-                    }
+                    changed = true;
                 }
+            }
+
+            if (state.fuelings && state.fuelings.length > 0) {
+                const originalFuelLength = state.fuelings.length;
+                
+                state.fuelings = state.fuelings.filter(entry => {
+                    let entryDate = null;
+                    if (entry.date) {
+                        // Formato YYYY-MM-DD
+                        const parts = entry.date.split('-');
+                        if (parts.length === 3) {
+                            const y = parseInt(parts[0], 10);
+                            const m = parseInt(parts[1], 10) - 1;
+                            const d = parseInt(parts[2], 10);
+                            if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                                entryDate = new Date(y, m, d);
+                            }
+                        }
+                    }
+                    
+                    if (entryDate && !isNaN(entryDate.getTime())) {
+                        return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
+                    }
+                    return true;
+                });
+                
+                if (state.fuelings.length !== originalFuelLength) {
+                    changed = true;
+                }
+            }
+
+            if (changed && shouldSave) {
+                saveAndSync();
             }
         }
 
