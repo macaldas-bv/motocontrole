@@ -892,6 +892,20 @@
             if (savedCofres) try { state.cofres = JSON.parse(savedCofres); } catch(e){}
             if (savedHistoricoUsos) try { state.historicoUsos = JSON.parse(savedHistoricoUsos); } catch(e){}
             
+            // Recuperação automática de backup se o histórico atual foi limpo fisicamente
+            if (state.history.length === 0) {
+                const backupSaved = localStorage.getItem('motoControleData');
+                if (backupSaved) {
+                    try {
+                        const backupData = JSON.parse(backupSaved);
+                        if (backupData && backupData.history && backupData.history.length > 0) {
+                            state.history = backupData.history;
+                            localStorage.setItem('modoControleData', JSON.stringify(state));
+                        }
+                    } catch(e) {}
+                }
+            }
+            
             checkMonthTurn(true);
             
             updateDate();
