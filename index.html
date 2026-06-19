@@ -2004,6 +2004,51 @@
             }
         }
 
+        function clearAllData() {
+            if (confirm('Tem certeza que deseja apagar TODOS os dados do aplicativo? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem('modoControleData');
+                localStorage.removeItem('motoControleData');
+                localStorage.removeItem('modocontrole_abastecimentos');
+                localStorage.removeItem('modocontrole_custos_config');
+                localStorage.removeItem('modocontrole_cofres');
+                localStorage.removeItem('modocontrole_historico_usos');
+
+                state = {
+                    currentDay: { earnings: [], expenses: [], kmStart: null, kmEnd: null },
+                    history: [],
+                    fuelings: [],
+                    config: { goal: 0, consumption: 0, fuelPrice: 0 },
+                    custosConfig: {
+                        items: [
+                            { id: 'manutencao', name: 'Manutenção', valorKm: 0.15, marcoKm: 10000, icon: '🔧' },
+                            { id: 'pneus', name: 'Pneus', valorKm: 0.08, marcoKm: 40000, icon: '🛞' },
+                            { id: 'oleo', name: 'Óleo', valorKm: 0.03, marcoKm: 5000, icon: '🛢️' },
+                            { id: 'depreciacao', name: 'Depreciação', valorKm: 0.20, marcoKm: 0, icon: '📉' },
+                            { id: 'reserva', name: 'Reserva Emergência', valorKm: 0.05, marcoKm: 0, icon: '🆘' }
+                        ]
+                    },
+                    cofres: {
+                        manutencao: { saldo: 0, kmAcumulado: 0 },
+                        pneus: { saldo: 0, kmAcumulado: 0 },
+                        oleo: { saldo: 0, kmAcumulado: 0 },
+                        depreciacao: { saldo: 0, kmAcumulado: 0 },
+                        reserva: { saldo: 0, kmAcumulado: 0 }
+                    },
+                    historicoUsos: []
+                };
+
+                document.getElementById('km-start').value = '';
+                document.getElementById('km-end').value = '';
+
+                saveAndSync();
+                loadConfigs();
+                loadCustosConfigs();
+                
+                switchPage('dashboard', null);
+                alert('Todos os dados foram limpos com sucesso!');
+            }
+        }
+
         init();
     </script>
 </body>
